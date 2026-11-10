@@ -53,7 +53,7 @@ Trigger any role explicitly in chat via `@orchestrator`, `@lead-pm`, `@pm`, `@ui
 ### Linux VPS / WSL / macOS
 ```bash
 # 1. Clone repository
-git clone https://github.com/<your-username>/agy-autonomous-team.git
+git clone https://github.com/fakhriramdani/agy-autonomous-team.git
 
 # 2. Run the automated installer
 cd agy-autonomous-team
@@ -64,7 +64,7 @@ chmod +x install.sh
 ### Windows (PowerShell)
 ```powershell
 # 1. Clone repository
-git clone https://github.com/<your-username>/agy-autonomous-team.git
+git clone https://github.com/fakhriramdani/agy-autonomous-team.git
 
 # 2. Run the automated installer
 cd agy-autonomous-team
@@ -122,4 +122,5 @@ User: "@orchestrator buatkan sistem otentikasi WhatsApp OTP"
 ---
 
 ## License
-MIT © fakhriramdani
+MIT
+
