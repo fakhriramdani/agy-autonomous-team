@@ -85,20 +85,25 @@ Orchestrator classifies every incoming request before spawning roles:
   2. `Lead PM (Phase 1: Scope & GLOSSARY.md)` -> `PM (PRD via to-spec & to-tickets)` -> `Lead PM (Phase 2: PRD Audit)`
   3. (`UI/UX` || `Lead Engineer` || `QA Phase 1: Test Plan` in parallel) -> **[Gate 1: Hard Stop Approval]**
   4. `Engineer`: Koding TDD vertikal per Story di branch `feat/<ticket-slug>`
-  5. `Lead Engineer (Phase 2)`: 2-Axis Code Review (`code-review` + `ponytail-review` + `caveman-review`) di branch `feat/<ticket-slug>`. Jika lolos -> **Merge ke branch `main` (Dev Repo)**
-  6. `QA (Phase 2)`: Pengujian E2E, `taste-skill` gate check, & Visual Diff langsung di branch `main` (Dev Repo)
-  7. Setelah `main` lolos QA -> Tag SemVer & Push ke **Repository Production**!
+  5. `Lead Engineer (Phase 2)`: 2-Axis Code Review (`code-review` + `ponytail-review` + `caveman-review`) di branch `feat/<ticket-slug>`. Jika lolos -> **Merge ke branch `main` (Dev Repo `origin`)**
+  6. `QA (Phase 2)`: Pengujian E2E, CI check, `taste-skill` gate check, & Visual Diff langsung di branch `main` (Dev Repo `origin`)
+  7. **[Gate 2: Release Approval]** -> Setelah `main` lolos QA (`STATUS: APPROVED`) & disetujui User -> Tag SemVer (`vX.Y.Z`), jalankan **Opsi Deployment** (Push ke **Repository Production (`production`)** untuk trigger CD / GitHub Actions SSH / Direct VPS Docker-PM2 / PaaS) + **Post-Deploy Live Healthcheck & Auto-Rollback**!
 
 ---
 
-## 4. Hard Operational Guardrails
+## 4. Hard Operational Guardrails & Deployment Options
 1. **Artifact-Only Handoff:** Never pass raw chat history across roles. Read/write concise markdown specs in `docs/`, domain terms in `GLOSSARY.md`, ADRs in `docs/adr/`, and state in `.agents/TEAM_STATE.json`.
 2. **Circuit Breaker:** Max **2 QA rejection loops**. On failure #3, Orchestrator halts and escalates to User with reproduction logs.
-3. **Git & Dual-Repository Workflow:**
-   - Engineer koding di branch `feat/<ticket-slug>`.
-   - Merge ke `main` (Dev Repo) dilakukan setelah Lead Engineer `FINAL_CODE_APPROVED`.
-   - QA menguji aplikasi di branch `main` (Dev Repo).
-   - Push ke remote `production` hanya dilakukan setelah QA `APPROVED` di `main`.
+3. **Git, CI/CD & 4 Production Deployment Options:**
+   - Engineer koding di branch `feat/<ticket-slug>` (termasuk menyiapkan `.github/workflows/ci.yml`, `deploy-prod.yml`, `Dockerfile`, `docker-compose.prod.yml`, dan endpoint `/health` sesuai `docs/architecture.md`).
+   - Merge ke `main` (Dev Repo `origin`) dilakukan setelah Lead Engineer `FINAL_CODE_APPROVED`.
+   - QA menguji aplikasi di branch `main` (Dev Repo `origin`).
+   - Setelah QA `APPROVED` + User menyetujui **Gate 2**, Orchestrator mengeksekusi salah satu **Opsi Deployment**:
+     - **Opsi A (Skema 2 Repository — `origin` Dev CI + `production` Prod CD) [Default]:** Repo 1 (`origin`) menjalankan CI & QA di `main`. Setelah Gate 2 disetujui, Orchestrator push `git push production main:main --tags` ke Repo 2 (`production`), yang otomatis memicu pipeline CD ke Server Production (via GitHub Actions SSH/Docker, VPS Webhook, atau PaaS yang di-bind ke Repo `production`).
+     - **Opsi B (Single-Repo GitHub Actions CI/CD ke VPS):** Push tag `vX.Y.Z` memicu `.github/workflows/deploy-prod.yml` untuk SSH & rollout Docker/PM2 di VPS Production.
+     - **Opsi C (Direct VPS / Local Server Deployment):** Rollout langsung via `docker compose -f docker-compose.prod.yml up -d --build` atau `pm2 reload`.
+     - **Opsi D (Managed PaaS):** Auto-deploy ke Vercel / Railway / Coolify / Render / Fly.io.
+   - **Post-Deploy Healthcheck & Auto-Rollback:** Wajib verifikasi `HTTP 200 OK` pada endpoint `/health` Production; jika gagal (`5xx`/timeout), otomatis rollback ke tag `vX.Y.Z-1`.
 4. **Pre-Flight Self-Healing:** Engineer must run linter/typecheck (`tsc --noEmit`, `npm run lint`, or equivalent), unit tests, and runtime smoke test (`HTTP 200 OK`) achieving exit code `0` before handing off.
 5. **Secrets Sentinel:** Never hardcode API keys, tokens, or credentials. Always use environment variables (`.env`), verify `.gitignore`, and redact secrets as `<REDACTED>` in logs.
 6. **Living Memory:** Append recurring defect patterns to `.agents/LESSONS_LEARNED.md` (1 line per lesson). All roles check this file before execution.

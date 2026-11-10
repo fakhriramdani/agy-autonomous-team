@@ -114,10 +114,24 @@ User: "@orchestrator buatkan sistem otentikasi WhatsApp OTP"
 8. User replies: "Lanjut koding"
 9. Engineer -> Implements Story-by-Story using strict TDD on branch feat/auth-otp
 10. Lead Engineer -> Reviews each Story diff (2-Axis Review: Standards + Smells & Spec)
-11. Orchestrator -> Merges to main (Dev Repo)
-12. QA -> Runs automated suite & headless browser gate on main
-13. Orchestrator -> Tags SemVer v1.1.0 & pushes to Production Repo
+11. Orchestrator -> Merges to main (Dev Repo `origin` — runs CI)
+12. QA -> Runs automated suite & headless browser gate on main (Dev Repo `origin`)
+13. [Gate 2 Release Approval] -> User confirms release
+14. Orchestrator -> Tags SemVer v1.1.0, executes selected Deployment Option, & verifies live `/health` (with Auto-Rollback)
 ```
+
+---
+
+## 🚀 CI/CD & Production Deployment Options
+
+At **Gate 0**, `@orchestrator` and `@lead-engineer` configure one of 4 production deployment topologies (with **Gate 2 User Approval**, **Live `/health` Verification**, and **Auto-Rollback** to `vX.Y.Z-1` on failure):
+
+| Option | Architecture | How It Works |
+| :--- | :--- | :--- |
+| **Option A (Recommended)** | **Dual-Repository CI/CD (`origin` Dev + `production` Prod)** | **Repo 1 (`origin`):** Hosts `feat/*` branches, `main` staging, `.github/workflows/ci.yml` (lint/test/build), and `@qa` Phase 2 testing. Never touches the live server.<br>**Repo 2 (`production`):** Receives code **only** after `@qa` stamps `APPROVED` and User approves **Gate 2** (`git push production main:main --tags`). Pushing to `production` triggers the live CD pipeline (GitHub Actions SSH/Docker to VPS, VPS Webhook, or connected PaaS). |
+| **Option B** | **Single-Repo GitHub Actions CI/CD to VPS** | `.github/workflows/ci.yml` runs on every push/merge; `.github/workflows/deploy-prod.yml` triggers only on SemVer tags (`v*.*.*`) to SSH into the VPS and run `docker compose up -d --build` or `pm2 reload`. |
+| **Option C** | **Direct Headless VPS (Docker Compose / PM2 / Systemd)** | Direct zero-downtime rollout on the target VPS using multi-stage `Dockerfile`, `docker-compose.prod.yml`, or `pm2 reload ecosystem.config.js` behind Nginx/Caddy. |
+| **Option D** | **Managed PaaS (Vercel / Railway / Coolify / Render / Fly.io)** | Automated production promotion via `production` git remote binding or PaaS CLI after QA approval. |
 
 ---
 

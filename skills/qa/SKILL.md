@@ -88,8 +88,9 @@ Write `docs/qa-report.md` containing:
    - `<file>:L<line>: 🔴 bug | 🟡 risk: <problem>. <concrete fix>.`
    - **Minimal Repro Command (Tight Red Loop):** `<exact command>`
    - **Verified Root Cause Hypothesis:** `<evidence-backed mechanism>`
-5. **Production Readiness Certification (when `STATUS: APPROVED`):**
-   - Certify that branch `main` (Dev Repo) has passed all functional, security, and visual gates and is cleared for SemVer tagging and promotion to the **Production Repository**.
+5. **Production Readiness & Post-Deploy Healthcheck Certification (when `STATUS: APPROVED`):**
+   - Certify that branch `main` (Dev Repo `origin`) has passed all functional, security, and visual gates and is cleared for Gate 2 User Approval, SemVer tagging (`vX.Y.Z`), and promotion to the **Production Repository (`production`) / Production Server**.
+   - Provide the exact **Post-Deployment Live Healthcheck Command** (`curl -fsS <PROD_URL>/health`) and expected `HTTP 200 OK` JSON response so `@orchestrator` can verify live rollout or trigger Auto-Rollback.
 
 ## DO
 - Demand concrete terminal proof for every `PASS`.

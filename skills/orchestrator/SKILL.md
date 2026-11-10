@@ -55,7 +55,12 @@ Analytical, process-driven, zero-fluff traffic controller powered by `caveman`, 
 Before spawning `role-lead-pm` on Tier 3 (or underspecified requests), verify all 5 core dimensions:
 1. **Target Platform & Business Kind** (`software`, `gaming`, `tech`, `product`, `service`, `place` per `taste-skill 2.5.1`).
 2. **Core MVP Scope & Primary Transaction Action** (must-have workflows vs out-of-scope, e.g., "Start a free trial", "Book a room").
-3. **Tech Stack, Architecture Seams & Data Storage** (framework, database, hosting target/VPS).
+3. **Tech Stack, Architecture Seams, Data Storage & Deployment Mode:**
+   - Framework, database, and **Deployment Option**:
+     - **Opsi A (Skema 2 Repository — `origin` Dev CI + `production` Prod CD)** *(Recommended)*
+     - **Opsi B (GitHub Actions CI/CD -> SSH / Docker Compose ke VPS)**
+     - **Opsi C (Direct VPS / Local Server via Docker Compose / PM2 / Systemd)**
+     - **Opsi D (Managed PaaS — Vercel / Railway / Coolify / Render / Fly.io)**
 4. **Auth, Security & External Integrations** (login method, payment, 3rd-party APIs).
 5. **Visual Vibe, Brand Palette & Figma Target** (dark/light mode, existing Figma URL or create new file).
 Call `ask_question` with `(Recommended)` first options to settle the frontier before spawning downstream roles.
@@ -77,6 +82,8 @@ Update `.agents/TEAM_STATE.json` at every transition:
   "stage": "AWAITING_USER_GATE_1_APPROVAL",
   "gate_0_user_approved": true,
   "gate_1_user_approved": false,
+  "gate_2_user_approved": false,
+  "deployment_mode": "dual-repo-cicd",
   "branch": "feat/feat-001",
   "completed_roles": ["lead-pm", "pm", "uiux", "lead-engineer", "qa-plan"],
   "qa_retries": 0,
@@ -123,17 +130,35 @@ Trigger all three in parallel once `STATUS: PRD_APPROVED`:
 - Once all Stories pass and Lead Engineer stamps `FINAL_CODE_APPROVED` and Engineer's Runtime Smoke Test returns `HTTP 200 OK`:
   - Merge `feat/<ticket-slug>` into branch `main` of the **Development Repository**.
 
-### 8. Phase 3: QA Verification on `main` & Production Release
-- Checkout `main` (Dev Repo) and spawn `role-qa` (Phase 2) to run `verify-and-stop`, automated tests, `taste-skill` gate checks (`copy-lint.mjs`, `consistency.mjs`, `gate.mjs`, `perf.mjs`), and Figma visual diff.
+### 8. Phase 3: QA Verification on `main`, Gate 2 Approval & Production CI/CD Deployment
+- Checkout `main` (Dev Repo `origin`) and spawn `role-qa` (Phase 2) to run `verify-and-stop`, automated tests, `taste-skill` gate checks (`copy-lint.mjs`, `consistency.mjs`, `gate.mjs`, `perf.mjs`), and Figma visual diff.
 - If `STATUS: REJECTED`:
   - Increment `qa_retries`. If `qa_retries >= 2` (3rd failure), trip **Circuit Breaker**, halt, and escalate to User with reproduction logs from `diagnosing-bugs`.
   - Otherwise route back to `role-engineer` on `feat/<ticket-slug>` using `diagnosing-bugs` + `surgical-patch`.
 - If `STATUS: APPROVED`:
-  - Compute SemVer tag (`feat:` -> MINOR, `fix:` -> PATCH, `!` -> MAJOR):
-    `git tag -a vX.Y.Z -m "release: vX.Y.Z"`
-  - Push `main` and tags to the **Production Repository**:
-    `git push production main:main --tags`
-  - Append 1-line summary to `.agents/METRICS.log` and any new defect patterns to `.agents/LESSONS_LEARNED.md`.
+  1. **HARD LOCK GATE 2 (Production Release & Deploy Approval):**
+     - Set `"stage": "AWAITING_USER_GATE_2_APPROVAL"` and `"gate_2_user_approved": false` in `.agents/TEAM_STATE.json`.
+     - Present QA Report summary, target SemVer tag (`vX.Y.Z`), and selected **Deployment Mode** to the User. **STOP (CALL NO TOOLS)** and wait for explicit User confirmation before pushing/deploying to Production.
+  2. **Execute Production Release & CD Pipeline (After User Approves Gate 2):**
+     - Set `"gate_2_user_approved": true` in `.agents/TEAM_STATE.json`.
+     - Compute SemVer tag (`feat:` -> MINOR, `fix:` -> PATCH, `!` -> MAJOR):
+       `git tag -a vX.Y.Z -m "release: vX.Y.Z"`
+     - Execute according to the project's **Deployment Option**:
+       - **Opsi A (Skema 2 Repository — `origin` Dev CI + `production` Prod CD):**
+         - Repo 1 (`origin`) runs CI (`ci.yml`: lint, test, build) and QA Phase 2 on `main`.
+         - Push verified `main` and SemVer tag to Repo 2 (`production`):
+           `git push production main:main --tags`
+         - Repo 2 (`production`) automatically triggers CD (`deploy-prod.yml` via SSH/Docker to VPS, Webhook, or connected PaaS).
+       - **Opsi B (Single-Repo GitHub Actions CI/CD to VPS):**
+         - Push `main` and tag `vX.Y.Z` to `origin` (`git push origin main --tags`), triggering `.github/workflows/deploy-prod.yml` (SSH/Docker Compose rollout on tag `v*`).
+       - **Opsi C (Direct VPS / Local Server Deployment via Docker Compose / PM2):**
+         - Run zero-downtime rollout (`docker compose -f docker-compose.prod.yml up -d --build` or `npm run build && pm2 reload ecosystem.config.js --update-env`).
+       - **Opsi D (Managed PaaS — Vercel / Railway / Coolify / Render / Fly.io):**
+         - Push to `production` remote or run CLI deploy (`vercel --prod`, `railway up`, or webhook trigger).
+  3. **Post-Deployment Live Healthcheck & Auto-Rollback:**
+     - Verify live production health endpoint (`curl -fsS <PROD_URL>/health` or `HTTP 200 OK` within 30s).
+     - If live healthcheck fails (`5xx` or timeout), immediately execute **Auto-Rollback** to the previous stable SemVer tag (`vX.Y.Z-1`), redeploy previous image/commit, and escalate to User.
+  4. Append 1-line summary to `.agents/METRICS.log` and any new defect patterns to `.agents/LESSONS_LEARNED.md`.
 
 ## DON'T
 - Never write application code or database migrations directly.

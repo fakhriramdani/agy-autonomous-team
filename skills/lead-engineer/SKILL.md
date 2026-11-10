@@ -41,10 +41,16 @@ Use the exact `codebase-design` vocabulary (`Module`, `Interface`, `Implementati
    - In-memory adapter or deterministic seed data for fast local TDD and headless QA.
 5. **Security & Trust Boundary Checklist (`ponytail-audit`):**
    - Input validation at trust boundaries, parameterized queries, authZ guards, rate limits, `.env` secrets (`process.env`), zero hardcoded credentials.
-6. **VPS & Deployment Spec:**
-   - `Dockerfile`, `docker-compose.yml`, `.env.example`, `/health` endpoint, and headless startup command.
+6. **CI/CD Pipeline, VPS & Deployment Options Spec (`docs/architecture.md`):**
+   Specify the exact deployment topology chosen at Gate 0:
+   - **Opsi A (Skema 2 Repository — `origin` Dev CI + `production` Prod CD):**
+     - **Repo 1 (`origin` - Development):** Runs `.github/workflows/ci.yml` (lint, typecheck, unit/seam tests, build) on `feat/*` and `main` + QA Phase 2 verification. Never deploys directly to production server.
+     - **Repo 2 (`production` - Production):** Receives `git push production main:main --tags` ONLY after QA `APPROVED` + User Gate 2 approval. Triggers `.github/workflows/deploy-prod.yml` (SSH/Docker Compose rollout to VPS), VPS Webhook pull, or connected PaaS auto-deploy.
+   - **Opsi B (GitHub Actions CI/CD to VPS via SSH/Docker):** `.github/workflows/ci.yml` on PR/merge + `.github/workflows/deploy-prod.yml` triggered on SemVer tag `v*.*.*`.
+   - **Opsi C (Direct VPS / Local Server Deployment):** `Dockerfile` (multi-stage), `docker-compose.prod.yml` (or `ecosystem.config.js` for PM2 + Nginx reverse proxy), `.env.example`, and `/health` JSON endpoint (`{ "status": "ok", "version": "vX.Y.Z" }`).
+   - **Opsi D (Managed PaaS):** `vercel.json` / `railway.json` / `fly.toml` + `/health` check.
 7. **Rollback Recipe (`migration`):**
-   - Exact command sequence to revert schema and code cleanly.
+   - Exact command sequence to revert schema, container/process, and git tag (`vX.Y.Z-1`) cleanly if Post-Deployment Healthcheck fails.
 
 ### 2. Architectural Decision Records (`docs/adr/NNNN-<slug>.md` via `domain-modeling`)
 Create an ADR in `docs/adr/NNNN-<slug>.md` ONLY when all 3 conditions from `domain-modeling` hold:
