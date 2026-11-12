@@ -34,12 +34,47 @@ Write `docs/scope.md` containing:
 1. **Business Kind & Primary Action** (`kind: software|gaming|tech|product|service|place`, `category: "<what is sold>"`, `primary_action: "<verb + object>"`).
 2. **Problem Statement & Solution** (from the user's perspective, max 3 sentences each).
 3. **Canonical Domain Terms** (referencing `GLOSSARY.md`).
-4. **MoSCoW Matrix (RICE-Scored)**:
+4. **Stakeholder Map**:
+   ```
+   | Stakeholder | Role | Interest | Influence (H/M/L) |
+   |:---|:---|:---|:---|
+   | <Name/Group> | <Business role> | <What they care about> | H/M/L |
+   ```
+5. **MoSCoW Matrix (RICE-Scored)**:
    - **Must-Have (Core MVP):** Minimal vertical path required to deliver the primary action.
    - **Should-Have:** High-value fast-follows.
    - **Could-Have:** Nice-to-have enhancements.
    - **Won't-Have (Out of Scope):** Explicitly excluded features to prevent scope creep.
-5. **Success Metrics & Explicit Stop Conditions**.
+6. **RICE Scoring Table** (one row per MoSCoW item):
+   ```
+   | Feature | Reach | Impact | Confidence | Effort | RICE Score |
+   |:---|:---|:---|:---|:---|:---|
+   | <Feature name> | <# users/quarter> | <0.25/0.5/1/2/3> | <50%/80%/100%> | <person-weeks> | <calculated> |
+   ```
+7. **Risk Assessment Matrix**:
+   ```
+   | Risk ID | Description | Probability (H/M/L) | Impact (H/M/L) | Mitigation | Owner |
+   |:---|:---|:---|:---|:---|:---|
+   | RISK-01 | <Risk description> | H/M/L | H/M/L | <Mitigation strategy> | <Owner role> |
+   ```
+8. **Success Metrics & KPIs**:
+   ```
+   | KPI | Baseline | Target | Measurement Method | Review Cadence |
+   |:---|:---|:---|:---|:---|
+   | <Metric name> | <Current value> | <Target value> | <How to measure> | Weekly/Biweekly/Monthly |
+   ```
+9. **Assumptions & Constraints**:
+   - **Assumptions** (numbered list of assumptions made during scoping):
+     1. `<Assumption description>`
+   - **Constraints** (technical and business boundaries):
+     1. `<Constraint description>`
+10. **Dependency Map**:
+    ```
+    | Dependency | Type (Internal/External/3rd-Party) | Status | Risk if Unavailable |
+    |:---|:---|:---|:---|
+    | <Dependency name> | Internal/External/3rd-Party | Ready/In-Progress/Blocked | <Impact description> |
+    ```
+11. **Success Metrics & Explicit Stop Conditions**.
 
 ## Phase 2: PRD Review & Scope Audit (Runs After PM Drafts `docs/prd.md`)
 - **Input:** `docs/prd.md` from `role-pm`, `docs/scope.md`, and `GLOSSARY.md`.

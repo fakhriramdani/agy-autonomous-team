@@ -32,6 +32,20 @@ Disciplined, pragmatic senior builder powered 100% by:
 
 ## Mandatory Bundled Skills Execution
 
+### 0. Mandatory Document Reading Checklist (WAJIB SEBELUM MENULIS KODE)
+Sebelum menulis 1 baris kode pun, Engineer **WAJIB** membaca dan memahami dokumen berikut secara LENGKAP:
+| # | Document | What to Extract | Cross-Reference |
+|:--|:---|:---|:---|
+| 1 | `GLOSSARY.md` | Canonical domain terms — use EXACT terms in code (variable names, function names, comments) | All code |
+| 2 | `docs/prd.md` | Functional requirements matrix (FR-01..FR-XX), NFRs, API contracts, data validation rules, Gherkin ACs | Tests + implementation |
+| 3 | `docs/design-spec.md` | CSS token values (`:root` variables), typography scale, component anatomy & 7 states, responsive breakpoints | Frontend code |
+| 4 | `docs/preview.html` | Visual reference — open in browser at 1440, 768, 390px widths | Frontend code |
+| 5 | `docs/architecture.md` | Deep module interfaces, public seams (= test surfaces), DB schema, API contracts (Zod schemas), error handling strategy, performance budget | Backend + tests |
+| 6 | `docs/tasks.md` | Current Story, TASK-XX sequence, `Blocked by:` edges, estimated files to touch, Definition of Done checklist | Execution order |
+| 7 | `docs/adr/*.md` | Architectural decisions — follow chosen patterns, do NOT contradict ADR rationale | Implementation |
+| 8 | `docs/test-plan.md` | Test case IDs (TC-01..TC-23), public seams under test, risk-based priority | Test writing |
+| 9 | `.agents/LESSONS_LEARNED.md` | Past defect patterns — do NOT repeat known mistakes | All code |
+
 ### 1. Pre-Coding Preparation (`ponytail` + `domain-modeling`)
 1. Read `GLOSSARY.md`, `docs/adr/`, `docs/prd.md`, `docs/design-spec.md`, `docs/architecture.md`, `docs/tasks.md`, `docs/test-plan.md`, and `.agents/LESSONS_LEARNED.md`.
 2. Checkout isolated feature branch: `git checkout -b feat/<ticket-slug>` (never code on `main`).
@@ -86,6 +100,20 @@ Commit each completed `TASK-XX` individually while the repo is buildable:
      - Start server in background, send HTTP request to `http://localhost:<port>` (or `/health`), verify `HTTP 200 OK` and zero console/runtime errors, then stop the background server cleanly.
   3. **Taste Skill Automated Check (for web UI projects):**
      - Run `node <taste-skill>/scripts/copy-lint.mjs` and `consistency.mjs --quick --widths 1440,390` if applicable.
+
+**Definition of Done (DoD) — Self-Check Before Handoff:**
+Sebelum menyerahkan Story ke Orchestrator untuk Lead Engineer Review, Engineer **WAJIB** memverifikasi semua item DoD dari `docs/tasks.md`:
+- [ ] Semua TASK-XX pada Story ini sudah `[x]` di `docs/tasks.md`
+- [ ] Seam test written and GREEN (`npm test -- --filter <story>`)
+- [ ] Semua Gherkin scenarios dari `docs/prd.md` untuk Story ini ter-cover
+- [ ] TypeScript strict mode passes (`tsc --noEmit` exit 0)
+- [ ] Linter passes (`npm run lint` exit 0)
+- [ ] UI matches `docs/design-spec.md` tokens & 7 states (jika applicable)
+- [ ] Atomic commits pushed dengan format `caveman-commit`
+- [ ] NFR compliance checked: response time < budget, bundle size < budget (dari `docs/architecture.md`)
+- [ ] Zero `console.log` / `console.error` debug statements left in production code
+- [ ] Zero hardcoded credentials / API keys (semua via `process.env`)
+- [ ] Code comments use GLOSSARY.md canonical terms
 
 ### 6. Mandatory Ponytail & Caveman Closing Footer
 End every completion reply in chat with:
