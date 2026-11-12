@@ -85,19 +85,20 @@ Orchestrator classifies every incoming request before spawning roles:
   2. `Lead PM (Phase 1: Scope & GLOSSARY.md)` -> `PM (PRD via to-spec & to-tickets)` -> `Lead PM (Phase 2: PRD Audit)`
   3. (`UI/UX` || `Lead Engineer` || `QA Phase 1: Test Plan` in parallel) -> **[Gate 1: Hard Stop Approval]**
   4. `Engineer`: Koding TDD vertikal per Story di branch `feat/<ticket-slug>`
-  5. `Lead Engineer (Phase 2)`: 2-Axis Code Review (`code-review` + `ponytail-review` + `caveman-review`) di branch `feat/<ticket-slug>`. Jika lolos -> **Merge ke branch `main` (Dev Repo `origin`)**
-  6. `QA (Phase 2)`: Pengujian E2E, CI check, `taste-skill` gate check, & Visual Diff langsung di branch `main` (Dev Repo `origin`)
-  7. **[Gate 2: Release Approval]** -> Setelah `main` lolos QA (`STATUS: APPROVED`) & disetujui User -> Tag SemVer (`vX.Y.Z`), jalankan **Opsi Deployment** (Push ke **Repository Production (`production`)** untuk trigger CD / GitHub Actions SSH / Direct VPS Docker-PM2 / PaaS) + **Post-Deploy Live Healthcheck & Auto-Rollback**!
+  5. `Lead Engineer (Phase 2)`: 2-Axis Code Review (`code-review` + `ponytail-review` + `caveman-review`) di branch `feat/<ticket-slug>`. Jika lolos (`FINAL_CODE_APPROVED`) -> **Push branch dan buat Pull Request / Merge Request ke branch `main` (Dev Repo `origin`)**
+  6. **[Gate 1.5: PR/MR Approval — DILARANG AUTO-MERGE]** -> Orchestrator berhenti dan menunggu User me-review diff dan meng-approve / me-merge PR ke `main`.
+  7. `QA (Phase 2)`: Pengujian E2E, CI check, `taste-skill` gate check, & Visual Diff langsung di branch `main` (Dev Repo `origin`) setelah PR di-merge.
+  8. **[Gate 2: Release Approval]** -> Setelah `main` lolos QA (`STATUS: APPROVED`) & disetujui User -> Tag SemVer (`vX.Y.Z`), jalankan **Opsi Deployment** (Push ke **Repository Production (`production`)** untuk trigger CD / GitHub Actions SSH / Direct VPS Docker-PM2 / PaaS) + **Post-Deploy Live Healthcheck & Auto-Rollback**!
 
 ---
 
 ## 4. Hard Operational Guardrails & Deployment Options
 1. **Artifact-Only Handoff:** Never pass raw chat history across roles. Read/write concise markdown specs in `docs/`, domain terms in `GLOSSARY.md`, ADRs in `docs/adr/`, and state in `.agents/TEAM_STATE.json`.
 2. **Circuit Breaker:** Max **2 QA rejection loops**. On failure #3, Orchestrator halts and escalates to User with reproduction logs.
-3. **Git, CI/CD & 4 Production Deployment Options:**
+3. **Git, PR/MR Gate, CI/CD & 4 Production Deployment Options:**
    - Engineer koding di branch `feat/<ticket-slug>` (termasuk menyiapkan `.github/workflows/ci.yml`, `deploy-prod.yml`, `Dockerfile`, `docker-compose.prod.yml`, dan endpoint `/health` sesuai `docs/architecture.md`).
-   - Merge ke `main` (Dev Repo `origin`) dilakukan setelah Lead Engineer `FINAL_CODE_APPROVED`.
-   - QA menguji aplikasi di branch `main` (Dev Repo `origin`).
+   - **DILARANG MERGE LANGSUNG KE `main`:** Setelah Lead Engineer `FINAL_CODE_APPROVED`, Orchestrator push branch `feat/<ticket-slug>` dan membuat Pull Request / Merge Request ke `main`. Orchestrator WAJIB menunggu persetujuan dan merge dari User di Gate 1.5!
+   - QA menguji aplikasi di branch `main` (Dev Repo `origin`) HANYA setelah PR di-merge.
    - Setelah QA `APPROVED` + User menyetujui **Gate 2**, Orchestrator mengeksekusi salah satu **Opsi Deployment**:
      - **Opsi A (Skema 2 Repository — `origin` Dev CI + `production` Prod CD) [Default]:** Repo 1 (`origin`) menjalankan CI & QA di `main`. Setelah Gate 2 disetujui, Orchestrator push `git push production main:main --tags` ke Repo 2 (`production`), yang otomatis memicu pipeline CD ke Server Production (via GitHub Actions SSH/Docker, VPS Webhook, atau PaaS yang di-bind ke Repo `production`).
      - **Opsi B (Single-Repo GitHub Actions CI/CD ke VPS):** Push tag `vX.Y.Z` memicu `.github/workflows/deploy-prod.yml` untuk SSH & rollout Docker/PM2 di VPS Production.
@@ -147,7 +148,7 @@ Setiap role memiliki batas yurisdiksi mutlak. Dilarang keras mengambil alih peke
 
 | Role | HANYA Boleh Menulis / Mengedit (*Write Whitelist*) | DILARANG KERAS Menyentuh (*Hard Blacklist*) |
 | :--- | :--- | :--- |
-| **`@orchestrator`** | `.agents/TEAM_STATE.json`, `.agents/METRICS.log`, `.agents/LESSONS_LEARNED.md` + perintah Git (`merge`, `tag`, `push`). | Semua kode aplikasi (`src/*`), test (`tests/*`), seluruh dokumen spesifikasi (`docs/*.md`, `GLOSSARY.md`, `docs/adr/*`), serta **DILARANG KERAS melewati Gate 0 / Gate 1 tanpa persetujuan eksplisit User di turn terpisah (`gate_1_user_approved: true`)**. |
+| **`@orchestrator`** | `.agents/TEAM_STATE.json`, `.agents/METRICS.log`, `.agents/LESSONS_LEARNED.md` + perintah Git (`branch`, `tag`, `push`). | Semua kode aplikasi (`src/*`), test (`tests/*`), seluruh dokumen spesifikasi (`docs/*.md`, `GLOSSARY.md`, `docs/adr/*`), serta **DILARANG KERAS melewati Gate 0 / Gate 1 / PR Gate tanpa persetujuan eksplisit User di turn terpisah (`gate_1_user_approved: true`, `pr_user_approved: true`) dan DILARANG MERGE LANGSUNG KE `main`**. |
 | **`@lead-pm`** | `docs/scope.md`, `GLOSSARY.md`, dan blok status `PRD VERDICT` di header `docs/prd.md`. | Isi detail User Story di `docs/prd.md`, desain UI (`docs/design-spec.md`, `docs/preview.html`), arsitektur (`docs/architecture.md`, `docs/tasks.md`, `docs/adr/*`), serta kode (`src/*`, `tests/*`). |
 | **`@pm`** | `docs/prd.md`. | `docs/scope.md`, `GLOSSARY.md`, `docs/design-spec.md`, `docs/preview.html`, `docs/architecture.md`, `docs/tasks.md`, `docs/test-plan.md`, serta kode (`src/*`, `tests/*`). |
 | **`@uiux`** | `docs/design-spec.md`, `docs/preview.html`, `docs/figma-plugin/*`, `docs/figma-console.js`, `.taste-skill/*`, dan Figma Canvas. | Kode aplikasi produksi (`src/*`, `app/*`, `components/*`, `package.json`), `docs/scope.md`, `docs/prd.md`, `docs/architecture.md`, `docs/tasks.md`, `docs/test-plan.md`. |

@@ -29,18 +29,41 @@ Write `docs/prd.md` strictly following the complete `to-spec` + Gherkin BDD stru
 
 ```markdown
 # Product Requirements Document (PRD)
-STATUS: DRAFT (Pending Lead PM Review)
+
+## Document Metadata
+
+| Field | Value |
+|:---|:---|
+| Document ID | PRD-<FEAT-ID> |
+| Version | 1.0 |
+| Status | DRAFT (Pending Lead PM Review) |
+| Author Role | @pm |
+| Reviewer | @lead-pm |
+| Created | <ISO 8601 date> |
+| Last Updated | <ISO 8601 date> |
+| Related Scope | docs/scope.md |
+| Related Glossary | GLOSSARY.md |
+
 Business Kind: <software|gaming|tech|product|service|place>
 Category: <what is sold>
 Primary Action: <verb + object>
 
-## 1. Problem Statement
+## 1. Executive Summary
+<3-5 sentence summary covering: the feature being built, the target user segment, the core problem it solves, the expected business impact, and how success will be measured.>
+
+## 2. Problem Statement
 <The problem the user is facing, from the user's perspective.>
 
-## 2. Solution
+## 3. Solution
 <The solution to the problem, from the user's perspective.>
 
-## 3. User Stories & Gherkin Acceptance Criteria
+## 4. Target Users & Personas
+
+| Persona | Role (from GLOSSARY.md) | Goals | Pain Points | Tech Savviness |
+|:---|:---|:---|:---|:---|
+| <Persona name> | <Canonical Actor from GLOSSARY.md> | <What they want to achieve> | <Current frustrations> | Low/Medium/High |
+
+## 5. User Stories & Gherkin Acceptance Criteria
 1. **US-01:** As a `<Canonical Actor from GLOSSARY.md>`, I want `<feature/capability>`, so that `<measurable benefit>`.
    - **Scenario 1.1 (Happy Path):**
      - **Given** `<precondition>`
@@ -55,16 +78,70 @@ Primary Action: <verb + object>
      - **When** `<action>`
      - **Then** `<idempotent handling / retry / 401 redirect>`
 
-## 4. Implementation & Seam Decisions (`to-spec`)
+## 6. Detailed Functional Requirements Matrix
+
+| Req ID | User Story Ref | Description | Priority (MoSCoW) | Acceptance Criteria Summary | Dependencies |
+|:---|:---|:---|:---|:---|:---|
+| FR-01 | US-01 | <Requirement description> | Must-Have | <Summary of acceptance criteria> | None |
+
+## 7. Non-Functional Requirements (NFRs)
+
+| NFR ID | Category | Requirement | Target Metric | Measurement Method |
+|:---|:---|:---|:---|:---|
+| NFR-01 | Performance | API response time | p95 < 200ms | Load test (k6/Artillery) |
+| NFR-02 | Availability | Uptime SLA | 99.9% | Monitoring (UptimeRobot) |
+| NFR-03 | Scalability | Concurrent users | 1000 CCU | Stress test |
+| NFR-04 | Security | OWASP Top 10 | Zero critical | SAST/DAST scan |
+| NFR-05 | Accessibility | WCAG compliance | Level AA | axe-core audit |
+| NFR-06 | Data Integrity | Backup & recovery | RPO < 1h, RTO < 4h | DR drill |
+
+## 8. Data Requirements
+
+| Entity (from GLOSSARY.md) | Key Attributes | Validation Rules | Relationships |
+|:---|:---|:---|:---|
+| <Actor> | email (unique, RFC 5322), name (2-100 chars) | Required, trimmed | Has many <Entity> |
+
+## 9. API Contract Summary
+
+| Endpoint | Method | Auth | Request Schema | Success Response | Error Responses |
+|:---|:---|:---|:---|:---|:---|
+| /api/<resource> | POST | Bearer JWT | Zod: { field: z.string().min(1).max(120) } | 201 { id, ...data } | 400 validation, 401 unauth, 409 conflict, 429 rate-limit |
+
+## 10. UI/UX Requirements Cross-Reference
+
+| Screen / Component | User Story Ref | Key Interactions | Design Spec Ref | Viewport Breakpoints |
+|:---|:---|:---|:---|:---|
+| <Page/Component name> | US-01 | <Key user interactions> | docs/design-spec.md §<N> | 1440, 768, 390 |
+
+## 11. Integration & External Dependencies
+
+| Integration | Provider | Purpose | API Version | Fallback Strategy | SLA |
+|:---|:---|:---|:---|:---|:---|
+| <Integration name> | <Provider> | <Purpose> | <Version> | <Fallback strategy> | <SLA %> |
+
+## 12. Implementation & Seam Decisions (`to-spec`)
 - **Modules & Interfaces Modified:** High-level module capabilities and public interfaces (do NOT hardcode brittle internal file paths).
 - **Data & Validation Constraints:** Required fields, min/max lengths, allowed formats, permission boundaries.
 
-## 5. Testing Decisions (`to-spec` & `tdd`)
+## 13. Testing Decisions (`to-spec` & `tdd`)
 - **Public Seams Under Test:** Identify the highest public seam(s) where behavior will be verified without coupling to internal implementation details.
 - **What Makes a Good Test Here:** Verify observable user/caller behavior through the public interface.
 
-## 6. Out of Scope (`Won't-Have`)
+## 14. Out of Scope (`Won't-Have`)
 - <Explicit list of excluded features from docs/scope.md>
+
+## 15. Assumptions & Open Questions Log
+
+| ID | Assumption / Question | Status (Open/Resolved) | Resolution | Date |
+|:---|:---|:---|:---|:---|
+| AQ-01 | <Assumption or question> | Open/Resolved | <Resolution if resolved> | <Date> |
+
+## 16. Revision History
+
+| Version | Date | Author | Changes |
+|:---|:---|:---|:---|
+| 1.0 | <date> | @pm | Initial draft |
+| 1.1 | <date> | @pm | Address Lead PM review feedback |
 ```
 
 ### 3. `to-tickets` Vertical Slice Readiness

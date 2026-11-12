@@ -121,7 +121,63 @@ Wajib merinci nilai CSS / Tailwind eksak untuk setiap elemen:
 - **7 Mandatory Component States:** `Default`, `Hover`, `Focus-Visible`, `Active`, `Loading/Skeleton`, `Empty State`, `Error State` (error text placed directly under its own field per `form-fields`).
 
 ### Blok 4: Deliverable Fisik (`docs/design-spec.md`, `docs/preview.html`, & Figma)
-1. **`docs/design-spec.md`:** Spesifikasi lengkap arsitektur desain, screen-by-screen plan (`1440x900` 1 section per screen), dan token CSS `:root`.
+
+1. **`docs/design-spec.md` (Industry-Grade Design Specification Template):**
+   Wajib menulis `docs/design-spec.md` dengan struktur standar industri lengkap:
+   ```markdown
+   # Design System Specification (`docs/design-spec.md`)
+   
+   | Field | Value |
+   |:---|:---|
+   | Document ID | DS-<FEAT-ID> |
+   | Version | 1.0 |
+   | Status | DRAFT |
+   | Author Role | @uiux |
+   | PRD Reference | docs/prd.md |
+   | Figma Canvas | <Figma URL or docs/figma-plugin/> |
+   | Live Preview | docs/preview.html |
+   
+   ## 1. Design Direction & Three Dials
+   - **Business Kind:** <software|gaming|tech|product|service|place>
+   - **Design Read:** <What is sold> for <Buyer> — Primary Action: <Verb + Object>
+   - **Three Dials (1–10):** DESIGN_VARIANCE: X | MOTION_INTENSITY: Y | VISUAL_DENSITY: Z
+   
+   ## 2. Design Tokens (`:root` CSS Variables)
+   <Tabel lengkap token warna: --bg, --surface, --ink, --muted, --border, --accent, --accent-ink dengan Hex, RGBA, dan rasio kontras WCAG>
+   
+   ## 3. Typography Scale & Hierarchy
+   <Tabel font pairing dari library/type.json: Display H1, Section H2, Body, Mono dengan font-family, sizes clamp(), line-height, letter-spacing, dan weights>
+   
+   ## 4. Spacing, Elevation & Grid System
+   - **Base Unit:** 4px / 8px grid scale
+   - **Container Max-Width:** 1440px (Desktop), 1024px (Tablet Land), 768px (Tablet Port), 390px (Mobile)
+   - **Wrap Margins:** Equal left and right margins per Rule 4
+   - **Border Radius:** sharp (0px) | soft (6–8px) | round (12–16px / 9999px)
+   - **Elevation / Shadows:** 1px hairline border (`var(--border)`) + subtle ambient shadow (no harsh drop shadows)
+   
+   ## 5. Screen-by-Screen Layout Specifications
+   Untuk setiap layar / section:
+   - **Section Height:** `--h: 1` (1 screen 1440x900) atau `--h: 2` (2 screens tall)
+   - **Layout Hierarchy:** Hero alone on screen 1, Section 2 below the fold
+   - **Responsive Breakpoints:** 1440px desktop, 1024px tablet landscape, 768px tablet portrait, 390px mobile
+   - **Visual Slots:** Slot jenis visual (real photo, icon, diagram, shader) per Rule 6-8
+   
+   ## 6. Component Anatomy & 7 Interactive States
+   Rincian CSS/Tailwind untuk setiap komponen utama (Buttons, Input Fields, Cards, Modal/Dialog):
+   - `Default`, `Hover` (2px lift / photo 1.02 zoom), `Focus-Visible` (outline ring), `Active` (scale 0.98), `Loading/Skeleton`, `Empty State`, `Error State` (pesan error persis di bawah field)
+   
+   ## 7. Motion & Micro-Interactions Spec
+   - **Entrance:** `data-enter` single load-in animation
+   - **Hover Lift:** `-translate-y-[2px] transition-transform duration-150 ease-out`
+   - **Dealt Moments:** 1–2 visual moments per page (Rule 5)
+   - **Reduced Motion:** `@media (prefers-reduced-motion: reduce) { transition: none; animation: none; }`
+   
+   ## 8. Accessibility & Compliance (WCAG 2.1 AA)
+   - Text contrast >= 4.5:1 (AA) and >= 3:1 (large text)
+   - Minimum tap target size: 44x44px on mobile
+   - Keyboard focus rings visible on all interactive elements
+   ```
+
 2. **`docs/preview.html`:** File HTML/CSS hidup mandiri yang menggunakan struktur `starter.html` / `system.css` dari `taste-skill` (atau Tailwind + Google Fonts asli), siap dibuka langsung di browser.
 3. **Figma URL / Plugin Fallback:** Link file Figma aktif (atau `docs/figma-plugin/manifest.json` + `code.js` dan `docs/figma-console.js`).
 
