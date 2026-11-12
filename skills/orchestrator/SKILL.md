@@ -23,6 +23,13 @@ Orchestrator **DILARANG KERAS** melewati, mengasumsikan, atau meng-approve sendi
    - Orchestrator **WAJIB MENGHENTIKAN GILIRAN KERJA SEKETIKA (`END TURN / CALL ZERO TOOLS`)** setelah menampilkan ringkasan Blueprint & 4 Tabel Token UI/UX ke User.
    - **DILARANG KERAS** memanggil `role-engineer` di turn yang sama dengan pembuatan dokumen desain/arsitektur!
    - Orchestrator hanya boleh mengubah `"gate_1_user_approved": true` dan memanggil `role-engineer` **SETELAH User membalas di turn baru** dengan kata persetujuan eksplisit (misal: *"Lanjut"*, *"Approve"*, *"Setuju"*, *"Gas koding"*).
+3. **HARD LOCK PR/MR GATE (DILARANG MERGE LANGSUNG KE `main`):**
+   - Setelah semua Story selesai koding dan Lead Engineer memberikan `FINAL_CODE_APPROVED`:
+   - Orchestrator **DILARANG KERAS** melakukan `git merge` langsung ke branch `main`!
+   - Orchestrator **WAJIB** push branch fitur: `git push origin feat/<ticket-slug>`
+   - Orchestrator **WAJIB** membuat **Pull Request / Merge Request** ke branch `main` (via `gh pr create` atau menyajikan link/draft PR di chat).
+   - Orchestrator **WAJIB MENGHENTIKAN GILIRAN KERJA SEKETIKA (`END TURN / CALL ZERO TOOLS`)** dan menunggu User me-review diff dan meng-approve / me-merge PR ke `main`.
+   - Hanya setelah User mengonfirmasi PR telah di-merge ke `main`, Orchestrator boleh checkout `main`, pull latest, dan memanggil `role-qa`.
 
 ## Persona & Mindset
 Analytical, process-driven, zero-fluff traffic controller powered by `caveman`, `cavecrew`, `grilling`, `to-questionnaire`, `triage`, `wayfinder`, `handoff`, and `retro`. You do not write application code; you decompose goals, dispatch roles, enforce gates, and maintain state.
@@ -128,10 +135,17 @@ Trigger all three in parallel once `STATUS: PRD_APPROVED`:
   - If `CHANGES_REQUESTED` -> Engineer fixes before moving to the next Story.
   - If `STORY_N_APPROVED` -> Engineer proceeds to the next Story.
 - Once all Stories pass and Lead Engineer stamps `FINAL_CODE_APPROVED` and Engineer's Runtime Smoke Test returns `HTTP 200 OK`:
-  - Merge `feat/<ticket-slug>` into branch `main` of the **Development Repository**.
+  - **DILARANG MERGE LANGSUNG KE `main`!**
+  - Push branch fitur ke remote: `git push origin feat/<ticket-slug>`
+  - Buat **Pull Request / Merge Request** ke branch `main` (Dev Repo `origin`):
+    - Jalankan `gh pr create --title "feat: <feature-name>" --body "..."` (atau tampilkan draft PR dan tautan pembuatan PR di GitHub).
+  - Tulis `"stage": "AWAITING_USER_PR_APPROVAL"` dan `"pr_user_approved": false` ke dalam `.agents/TEAM_STATE.json`.
+  - **STOP (CALL NO TOOLS).** Laporkan nomor/link PR kepada User dan tunggu User me-review diff serta meng-approve/merge PR ke `main`.
 
-### 8. Phase 3: QA Verification on `main`, Gate 2 Approval & Production CI/CD Deployment
-- Checkout `main` (Dev Repo `origin`) and spawn `role-qa` (Phase 2) to run `verify-and-stop`, automated tests, `taste-skill` gate checks (`copy-lint.mjs`, `consistency.mjs`, `gate.mjs`, `perf.mjs`), and Figma visual diff.
+### 8. Phase 3: QA Verification on `main` (Setelah PR Di-merge), Gate 2 Approval & Production CI/CD Deployment
+- Setelah User mengonfirmasi PR telah di-merge ke `main`:
+  - Checkout branch `main` (Dev Repo `origin`) dan tarik pembaruan: `git checkout main && git pull origin main`.
+  - Spawn `role-qa` (Phase 2) to run `verify-and-stop`, automated tests, `taste-skill` gate checks (`copy-lint.mjs`, `consistency.mjs`, `gate.mjs`, `perf.mjs`), and Figma visual diff.
 - If `STATUS: REJECTED`:
   - Increment `qa_retries`. If `qa_retries >= 2` (3rd failure), trip **Circuit Breaker**, halt, and escalate to User with reproduction logs from `diagnosing-bugs`.
   - Otherwise route back to `role-engineer` on `feat/<ticket-slug>` using `diagnosing-bugs` + `surgical-patch`.

@@ -33,6 +33,95 @@ Use the exact `codebase-design` vocabulary (`Module`, `Interface`, `Implementati
    - Apply the **Deletion Test**: no shallow pass-through wrappers or single-implementation interfaces ("One adapter = hypothetical seam; two adapters = real seam").
    - Specify how modules accept dependencies rather than constructing them internally, and return results rather than hidden side effects.
    - Specify the exact **Pre-Agreed Public Seams** where `role-engineer` and `role-qa` will write tests ("The interface is the test surface").
+
+#### 1.1 System Context Diagram (C4 Level 1)
+Gambar diagram Mermaid `graph TD` yang menunjukkan:
+- Aktor utama (dari `GLOSSARY.md`)
+- Sistem yang dibangun (boundary box)
+- Sistem eksternal (payment gateway, SMS provider, dll)
+- Arah data flow antar komponen
+
+```mermaid
+graph TD
+    Actor["<Actor from GLOSSARY.md>"] --> System["System Under Build"]
+    System --> ExtPayment["Payment Gateway"]
+    System --> ExtSMS["SMS Provider"]
+    System --> ExtAuth["Auth Provider (if external)"]
+```
+
+#### 1.2 Container Diagram (C4 Level 2)
+Gambar diagram Mermaid `graph TD` yang menunjukkan containers, lalu isi tabel berikut:
+
+| Container | Technology | Purpose | Port | Scaling Strategy |
+|:---|:---|:---|:---|:---|
+| Frontend SPA | Next.js 14 | UI rendering | 3000 | Horizontal (CDN) |
+| API Server | Node.js + Hono/Express | Business logic | 4000 | Horizontal (PM2 cluster) |
+| Database | PostgreSQL 16 | Persistent storage | 5432 | Vertical + read replicas |
+| Cache | Redis 7 | Session & rate limit | 6379 | Sentinel |
+| Queue | BullMQ | Async jobs (email, SMS) | - | Worker scaling |
+
+#### 1.3 Critical Flow Sequence Diagrams
+Untuk setiap User Story kritis (`US-01`, `US-02`, dst), gambar `sequenceDiagram` Mermaid yang menunjukkan:
+- Actor -> Frontend -> API -> DB/Cache -> External Service -> Response
+- Happy path DAN error/timeout path
+- Retry strategy dan circuit breaker behavior
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant FE as Frontend
+    participant API as API Server
+    participant DB as Database
+    participant Ext as External Service
+    User->>FE: Action
+    FE->>API: Request
+    API->>DB: Query
+    DB-->>API: Result
+    API->>Ext: Call (with timeout)
+    alt Success
+        Ext-->>API: 200 OK
+        API-->>FE: Response
+        FE-->>User: Updated UI
+    else Timeout / Error
+        Ext-->>API: 504 / 5xx
+        API->>API: Circuit breaker check
+        API-->>FE: Error response + retry-after
+        FE-->>User: Error state + retry button
+    end
+```
+
+#### 1.4 Error Handling & Resilience Strategy
+
+| Error Category | HTTP Status | Client Behavior | Server Behavior | Retry Strategy |
+|:---|:---|:---|:---|:---|
+| Validation | 400 | Show field-level error | Log warning | No retry |
+| Authentication | 401 | Redirect to login | Revoke session | No retry |
+| Authorization | 403 | Show forbidden message | Log + alert | No retry |
+| Not Found | 404 | Show empty state | - | No retry |
+| Rate Limited | 429 | Show cooldown timer | Queue for later | Exponential backoff |
+| Server Error | 500 | Show generic error + retry button | Log error + alert on-call | 3x exponential backoff |
+| Timeout | 504 | Show timeout message | Circuit breaker open | 3x with 2s/4s/8s |
+
+#### 1.5 Logging, Monitoring & Observability
+
+| Signal | Tool | What to Capture | Alert Threshold |
+|:---|:---|:---|:---|
+| Structured Logs | Pino / Winston | request_id, user_id, action, duration_ms, status | Error rate > 1%/min |
+| Metrics | Prometheus / custom `/metrics` | request_count, response_time_p95, error_rate, active_connections | p95 > 500ms |
+| Health Check | GET `/health` | { status, version, uptime, db_connected, cache_connected } | Any `false` |
+| Traces | OpenTelemetry (optional) | Distributed request tracing across services | Span duration > 2s |
+
+#### 1.6 Performance Budget & SLAs
+
+| Metric | Budget | Measurement | Enforcement |
+|:---|:---|:---|:---|
+| Time to First Byte (TTFB) | < 200ms | Lighthouse CI | CI gate |
+| Largest Contentful Paint (LCP) | < 2.5s | Lighthouse CI | CI gate |
+| Cumulative Layout Shift (CLS) | < 0.1 | Lighthouse CI | CI gate |
+| API p95 Response Time | < 200ms | k6 load test | QA Phase 2 |
+| Bundle Size (JS) | < 200KB gzipped | `size-limit` | CI gate |
+| Database Query Time | < 50ms per query | `EXPLAIN ANALYZE` | Code review |
+
 2. **Data Model, DB Schema & Reversible Migration Plan (`migration`):**
    - Tables/collections, indexes, constraints, and expand–contract compatibility plan.
 3. **Interface & API Contracts:**
@@ -70,12 +159,26 @@ Break `docs/prd.md` into **tracer-bullet vertical slices** (`to-tickets`).
 
 ## Story 1: [End-to-End User Capability from US-01]
 - **Blocked by:** None (can start immediately)
+- **Story Points:** <1|2|3|5|8> (Fibonacci)
 - **Public Seam Under Test:** `<Module Interface / Endpoint>`
 - **What it delivers:** `<Observable end-to-end user behavior>`
-- [ ] **TASK-01 (RED):** Write failing seam test for Story 1 (`tdd`) -> Files: `tests/...` (Blocked by: None)
-- [ ] **TASK-02 (GREEN - Data/Module):** Implement deep module & schema -> Files: `src/...` (Blocked by: TASK-01)
-- [ ] **TASK-03 (GREEN - UI):** Build UI with `taste-skill 2.5.1` tokens & 7 states -> Files: `src/...` (Blocked by: TASK-02)
-- [ ] **TASK-04 (VERIFY):** Pass seam test, lint, typecheck (`tsc --noEmit`) -> (Blocked by: TASK-03)
+- **Technical Notes:** <1-line implementation hint, e.g. "gunakan Zod schema dari `docs/architecture.md` §3.2", "implementasi adapter pattern dari ADR-0001">
+- **Definition of Done:**
+  - [ ] Seam test written and GREEN
+  - [ ] All Gherkin scenarios from `docs/prd.md` covered
+  - [ ] TypeScript strict mode passes (`tsc --noEmit`)
+  - [ ] Linter passes (`npm run lint`)
+  - [ ] Code reviewed by @lead-engineer (`docs/code-review.md`)
+  - [ ] UI matches `docs/design-spec.md` tokens & 7 states (if applicable)
+  - [ ] `docs/tasks.md` checkbox marked `[x]`
+  - [ ] Atomic commit pushed with `caveman-commit` format
+- **Estimated Files to Touch:**
+- [ ] **TASK-01 (RED):** Write failing seam test -> Files: `tests/<module>.test.ts` (Blocked by: None)
+- [ ] **TASK-02 (GREEN - Schema):** Implement DB schema & migration -> Files: `src/db/schema.ts`, `src/db/migrations/001_<name>.sql` (Blocked by: TASK-01)
+- [ ] **TASK-03 (GREEN - Module):** Implement deep module -> Files: `src/modules/<name>/index.ts`, `src/modules/<name>/types.ts` (Blocked by: TASK-02)
+- [ ] **TASK-04 (GREEN - API):** Implement API endpoint with Zod validation -> Files: `src/routes/<name>.ts` (Blocked by: TASK-03)
+- [ ] **TASK-05 (GREEN - UI):** Build UI with taste-skill tokens & 7 states -> Files: `src/components/<Name>.tsx`, `src/pages/<name>.tsx` (Blocked by: TASK-04)
+- [ ] **TASK-06 (VERIFY):** Pass seam test, lint, typecheck -> (Blocked by: TASK-05)
 ```
 
 ---

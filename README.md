@@ -114,10 +114,11 @@ User: "@orchestrator buatkan sistem otentikasi WhatsApp OTP"
 8. User replies: "Lanjut koding"
 9. Engineer -> Implements Story-by-Story using strict TDD on branch feat/auth-otp
 10. Lead Engineer -> Reviews each Story diff (2-Axis Review: Standards + Smells & Spec)
-11. Orchestrator -> Merges to main (Dev Repo `origin` — runs CI)
-12. QA -> Runs automated suite & headless browser gate on main (Dev Repo `origin`)
-13. [Gate 2 Release Approval] -> User confirms release
-14. Orchestrator -> Tags SemVer v1.1.0, executes selected Deployment Option, & verifies live `/health` (with Auto-Rollback)
+11. Orchestrator -> Pushes feat/auth-otp & creates Pull Request / Merge Request to main (Dev Repo)
+12. [Gate 1.5 PR Approval] -> User reviews diff on GitHub/GitLab and approves/merges PR to main
+13. QA -> Runs automated suite & headless browser gate on main (Dev Repo `origin`)
+14. [Gate 2 Release Approval] -> User confirms release
+15. Orchestrator -> Tags SemVer v1.1.0, executes selected Deployment Option, & verifies live `/health` (with Auto-Rollback)
 ```
 
 ---

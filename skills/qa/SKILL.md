@@ -28,7 +28,54 @@ Skeptical, evidence-driven quality gatekeeper powered 100% by:
 - **Output:** Write `docs/test-plan.md` mapping every Gherkin scenario, public seam, business edge case, and `taste-skill 2.5.1` visual rule:
 
 ```markdown
-# Test Plan, Seam Matrix & Taste Skill Gate (`docs/test-plan.md`)
+# Test Plan & Quality Assurance Strategy
+
+| Field | Value |
+|:---|:---|
+| Document ID | TP-<FEAT-ID> |
+| Version | 1.0 |
+| Status | DRAFT |
+| Author Role | @qa |
+| PRD Reference | docs/prd.md |
+| Architecture Reference | docs/architecture.md |
+| Design Reference | docs/design-spec.md |
+
+## 0. Test Strategy & Approach
+
+### Test Levels
+| Level | Scope | Tooling | Responsibility | Trigger |
+|:---|:---|:---|:---|:---|
+| Unit / Seam | Module interface contracts | Vitest / Jest | @engineer (TDD) | Every TASK-XX commit |
+| Integration | Cross-module + DB/API | Vitest + Supertest | @engineer | Per Story completion |
+| E2E / System | Full user flow (headless browser) | Playwright / Cypress | @qa Phase 2 | After merge to `main` |
+| Visual Regression | UI pixel diff vs Figma | taste-skill + Figma screenshot | @qa Phase 2 | After merge to `main` |
+| Performance | Load, stress, soak | k6 / Artillery | @qa Phase 2 | Before Gate 2 |
+| Security | OWASP Top 10, auth bypass, injection | Manual + SAST/DAST | @qa Phase 2 | Before Gate 2 |
+
+### Test Environment Requirements
+| Environment | Purpose | Data | URL |
+|:---|:---|:---|:---|
+| Local Dev | TDD by @engineer | In-memory adapter / SQLite | localhost:<port> |
+| CI Runner | Automated gate on push | Seeded test DB (deterministic) | GitHub Actions |
+| Staging (`main` Dev Repo) | QA Phase 2 full verification | Production-like seeded data | <staging-url> |
+
+### Test Data Requirements
+| Dataset | Purpose | Source | Refresh Cadence |
+|:---|:---|:---|:---|
+| Seed: Happy Path | Baseline functional tests | Deterministic seed script | Every test run |
+| Seed: Edge Cases | Boundary value testing | Manual fixtures in `tests/fixtures/` | Per Story |
+| Seed: Large Volume | Performance / stress tests | Generated (Faker / custom) | Before perf test |
+
+### Risk-Based Test Prioritization
+| Risk Area | Business Impact (H/M/L) | Technical Complexity (H/M/L) | Test Priority | Test Coverage Target |
+|:---|:---|:---|:---|:---|
+| Authentication & Authorization | H | M | P0 — Test first | 100% branch coverage |
+| Primary Transaction (from scope.md) | H | H | P0 — Test first | 100% branch coverage |
+| Payment / Financial | H | H | P0 — Test first | 100% + manual verification |
+| Data Validation & Integrity | H | M | P1 | 90% branch coverage |
+| UI Rendering & Responsive | M | M | P1 | Visual regression + 6 viewports |
+| Error Handling & Resilience | M | M | P2 | Happy + top 3 error paths |
+| Performance under load | M | L | P2 | p95 < SLA from architecture.md |
 
 ## 1. Public Seam & Gherkin Automated Scenarios (`tdd` Alignment)
 - [ ] **TC-01 (US-01 Happy Path at Seam `<Interface>`):** Given ... When ... Then ...
@@ -44,6 +91,26 @@ Skeptical, evidence-driven quality gatekeeper powered 100% by:
 - [ ] **TC-07 (Multi-Viewport Layout & Equal Edges):** `1440x900`, `1024x768`, `820x1180`, `768x1024`, `390x844`, and `320px` (1 section per screen, equal `.wrap` edges, zero horizontal overflow, zero element collision, `>= 44px` tap targets).
 - [ ] **TC-08 (7 Mandatory States & Motion):** `Default`, `Hover` (`2px` card lift, button step), `Focus-Visible` (skip-link & ring), `Active`, `Loading`, `Empty`, `Error` (under field), plus `prefers-reduced-motion` rest state.
 - [ ] **TC-09 (Performance & Visuals):** Every visual renders (never empty ground), max 4 WebGL contexts, zero layout shift (`perf.mjs`), matches Figma Canvas / `docs/design-spec.md`.
+
+## 4. Performance Test Scenarios
+- [ ] **TC-10 (API Load Test):** k6: 100 VUs for 60s against primary endpoints. Assert p95 < target from `docs/architecture.md`.
+- [ ] **TC-11 (Database Query Performance):** All queries complete < 50ms under 100 concurrent connections.
+- [ ] **TC-12 (Frontend Performance):** Lighthouse CI: LCP < 2.5s, CLS < 0.1, FID < 100ms at 4G throttle.
+- [ ] **TC-13 (Bundle Size):** JS bundle < budget from `docs/architecture.md` gzipped.
+
+## 5. Accessibility Test Scenarios (WCAG 2.1 AA)
+- [ ] **TC-14 (Keyboard Navigation):** All interactive elements reachable via Tab, actionable via Enter/Space, escapable via Escape.
+- [ ] **TC-15 (Screen Reader):** All form inputs have associated labels, images have alt text, ARIA landmarks present.
+- [ ] **TC-16 (Color Contrast):** All text meets WCAG AA contrast ratios (4.5:1 normal, 3:1 large). Run axe-core audit.
+- [ ] **TC-17 (Reduced Motion):** `prefers-reduced-motion: reduce` disables all non-essential animations. Verify no motion sickness triggers.
+
+## 6. Security Test Scenarios
+- [ ] **TC-18 (Authentication Bypass):** Attempt accessing protected routes without valid token -> 401.
+- [ ] **TC-19 (SQL Injection):** Submit `'; DROP TABLE users; --` in all text inputs -> sanitized, no DB error.
+- [ ] **TC-20 (XSS):** Submit `<script>alert(1)</script>` in all text inputs -> escaped in rendered output.
+- [ ] **TC-21 (CSRF):** Cross-origin POST without CSRF token -> 403.
+- [ ] **TC-22 (Rate Limiting):** 100 requests in 10s from same IP -> 429 after threshold.
+- [ ] **TC-23 (Secrets Audit):** `git log -p | grep -iE 'api_key|secret|token|password'` -> zero matches.
 ```
 
 ---
@@ -83,12 +150,43 @@ Whenever a test, runtime check, or visual check fails, do **NOT** guess or repor
 Write `docs/qa-report.md` containing:
 1. **FINAL VERDICT:** `STATUS: APPROVED` or `STATUS: REJECTED`
 2. **Taste Skill Gate Line:** `GATE: PASS` / `GATE: OPEN` / `N/A (Backend-only)`
-3. **Test Matrix Results:** Table of `TC-01` .. `TC-09` with `PASS` / `FAIL` / `BLOCKED` and exact command outputs.
-4. **Actionable Defect List (if `REJECTED`, formatted via `caveman-review` + `diagnosing-bugs`):**
+3. **Test Environment:**
+   ```markdown
+   | Parameter | Value |
+   |:---|:---|
+   | Branch | main (Dev Repo `origin`) |
+   | Commit SHA | <sha> |
+   | Node.js | <version> |
+   | OS | <os> |
+   | Browser (for visual) | Chromium <version> (headless) |
+   | Test Runner | Vitest/Jest <version> |
+   | Date | <ISO 8601> |
+   ```
+4. **Coverage Summary:**
+   ```markdown
+   | Metric | Value | Target | Status |
+   |:---|:---|:---|:---|
+   | Statement Coverage | XX% | > 80% | PASS/FAIL |
+   | Branch Coverage | XX% | > 75% | PASS/FAIL |
+   | Critical Path Coverage | XX% | 100% | PASS/FAIL |
+   | Tests Passed | XX/XX | 100% | PASS/FAIL |
+   | Tests Skipped | XX | 0 | PASS/FAIL |
+   ```
+5. **Performance Results:**
+   ```markdown
+   | Metric | Result | Budget | Status |
+   |:---|:---|:---|:---|
+   | API p95 Response Time | XXms | < 200ms | PASS/FAIL |
+   | LCP (1440px) | X.Xs | < 2.5s | PASS/FAIL |
+   | CLS | X.XX | < 0.1 | PASS/FAIL |
+   | JS Bundle Size | XXkB | < 200kB gz | PASS/FAIL |
+   ```
+6. **Test Matrix Results:** Table of `TC-01` .. `TC-23` with `PASS` / `FAIL` / `BLOCKED` and exact command outputs.
+7. **Actionable Defect List (if `REJECTED`, formatted via `caveman-review` + `diagnosing-bugs`):**
    - `<file>:L<line>: 🔴 bug | 🟡 risk: <problem>. <concrete fix>.`
    - **Minimal Repro Command (Tight Red Loop):** `<exact command>`
    - **Verified Root Cause Hypothesis:** `<evidence-backed mechanism>`
-5. **Production Readiness & Post-Deploy Healthcheck Certification (when `STATUS: APPROVED`):**
+8. **Production Readiness & Post-Deploy Healthcheck Certification (when `STATUS: APPROVED`):**
    - Certify that branch `main` (Dev Repo `origin`) has passed all functional, security, and visual gates and is cleared for Gate 2 User Approval, SemVer tagging (`vX.Y.Z`), and promotion to the **Production Repository (`production`) / Production Server**.
    - Provide the exact **Post-Deployment Live Healthcheck Command** (`curl -fsS <PROD_URL>/health`) and expected `HTTP 200 OK` JSON response so `@orchestrator` can verify live rollout or trigger Auto-Rollback.
 
