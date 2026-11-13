@@ -10,4 +10,10 @@ if (Test-Path $TargetDir) {
 }
 Copy-Item -Recurse -Force $ScriptDir $TargetDir
 
-Write-Host "[OK] Installed $PluginName to $TargetDir"
+# Auto-register AGENTS.md globally for Gemini CLI (~/.gemini/GEMINI.md) and Claude Code (~/.claude/CLAUDE.md)
+New-Item -ItemType Directory -Force -Path (Join-Path $HOME ".gemini") | Out-Null
+Copy-Item -Force (Join-Path $ScriptDir "rules\AGENTS.md") (Join-Path $HOME ".gemini\GEMINI.md")
+New-Item -ItemType Directory -Force -Path (Join-Path $HOME ".claude") | Out-Null
+Copy-Item -Force (Join-Path $ScriptDir "rules\AGENTS.md") (Join-Path $HOME ".claude\CLAUDE.md")
+
+Write-Host "[OK] Installed $PluginName globally to $TargetDir (Zero manual copy needed per project)"

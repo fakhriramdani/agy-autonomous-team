@@ -10,6 +10,15 @@ rm -rf "${TARGET_DIR}"
 cp -R "${SCRIPT_DIR}" "${TARGET_DIR}"
 rm -rf "${TARGET_DIR}/figma-skills-backup" "${TARGET_DIR}/scripts"
 
+# Auto-register AGENTS.md globally so NO manual copy per project is ever needed:
+# 1. Antigravity (agy) global plugin rule: ~/.gemini/config/plugins/autonomous-team-kit/rules/AGENTS.md (already copied above)
+# 2. Gemini CLI global rule: ~/.gemini/GEMINI.md
+mkdir -p "${HOME}/.gemini"
+cp -f "${SCRIPT_DIR}/rules/AGENTS.md" "${HOME}/.gemini/GEMINI.md"
+# 3. Claude Code global rule: ~/.claude/CLAUDE.md
+mkdir -p "${HOME}/.claude"
+cp -f "${SCRIPT_DIR}/rules/AGENTS.md" "${HOME}/.claude/CLAUDE.md"
+
 # Avoid duplicate skill loading in Antigravity: remove duplicate standalone skill copies from ~/.gemini/config/skills
 if [ -d "${HOME}/.gemini/config/skills" ]; then
   for skill_dir in "${SCRIPT_DIR}/skills/"*; do
