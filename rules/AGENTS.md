@@ -32,7 +32,7 @@ Trigger roles explicitly via `@orchestrator`, `@lead-pm`, `@pm`, `@uiux`, `@lead
    - Surgical edit (<=2 files) -> `cavecrew-builder` (`<path:line-range> — <change <=10 words> | verified: OK`).
    - Quick diff check -> `cavecrew-reviewer` (`path:line: 🔴/🟡/🔵/❓ <severity>: <problem>. <fix>. | totals: N🔴 N🟡 N🔵 N❓`).
 
-### B. Ponytail Engineering Philosophy (`ponytail` + `ponytail-audit` + `ponytail-review` + `ponytail-debt`)
+### B. Ponytail Engineering Philosophy, Clean Code Architecture (SOLID/DRY/KISS) & Structured Logging
 1. **Lazy Senior Developer Mode (YAGNI):** The best code is the code never written. Solve the whole problem with the least new code.
 2. **Pre-Edit Blast Radius Check:** Before editing, list every place the change must reach: callers, tests, fixtures, config, exports.
 3. **6-Step Smallest Complete Change Hierarchy:**
@@ -40,12 +40,22 @@ Trigger roles explicitly via `@orchestrator`, `@lead-pm`, `@pm`, `@uiux`, `@lead
    2. *Already in this codebase?* Reuse existing helpers, components, services, and patterns.
    3. *Standard library or native platform feature?* Use it before reaching for packages.
    4. *Installed dependency?* Use it; never add a new package for a few lines of code.
-   5. *Can it be one readable line?* Write one line.
+   5. *Can it be a clear, breakpoint-friendly statement?* Prefer readable, debuggable statements over clever chained one-liners or nested ternaries.
    6. *Otherwise:* Write the minimum code that works and handles edge cases.
-4. **Debt Ledger Tag (`ponytail-debt`):** Every deliberate shortcut with a known scale/feature limit MUST carry an inline comment:
+4. **Clean Code Architecture (SOLID, DRY, KISS) & Developer-Friendly Debuggability:**
+   - **Single Responsibility (SRP):** Separate HTTP/Route handlers (transport & Zod validation), Domain Services (business rules), and Repositories/Adapters (DB/external I/O).
+   - **Open/Closed, Liskov & Dependency Inversion (OCP/LSP/DIP):** Depend on Public Seam interfaces (`types.ts`) and discriminated unions (`Result<T, E>`), injecting DB/external adapters so modules are 100% testable without network/DB.
+   - **DRY (Rule of Three):** Deduplicate at 3+ call sites; keep 2 similar blocks separate if coupling them requires boolean flag arguments.
+   - **Low Cognitive Load & Breakpoint-Friendly Code:** Use Early Return guard clauses (max 2 indentation levels), max `30–40 lines` per function, max `300 lines` per file, max `3 positional parameters` (use a typed options object for 4+), assign intermediate results to descriptive `const` variables before `return` (so developers can set debugger breakpoints), and **NEVER write nested ternaries (`a ? b : c ? d : e`)**.
+5. **End-to-End Structured Logging & Error Traceability (`src/lib/logger.ts`):**
+   - **Dual-Mode Logger:** Human-friendly pretty logs in `development` (`[HH:mm:ss.SSS] LEVEL [module] (reqId): msg`) and single-line JSON in `production` (`timestamp`, `level`, `requestId`, `userId`, `module`, `action`, `durationMs`, `message`), controlled by `LOG_LEVEL`.
+   - **Correlation ID (`X-Request-Id` / `requestId`):** Generate/forward `X-Request-Id` at the HTTP boundary and include `requestId` in all logs and error responses (`{ error: { code, message, requestId } }`).
+   - **Contextual Error Chaining (`AppError`):** Never swallow errors (`catch (e) {}` is strictly forbidden) and never use raw `console.log` in `src/`. Wrap caught errors with `AppError(code, message, statusCode, details, { cause: err })` preserving stack traces.
+   - **Mandatory Auto-Redaction:** Automatically mask `password`, `token`, `secret`, `otp`, `apiKey`, `authorization`, `cvv`, and `creditCard` as `[REDACTED]` before logging.
+6. **Debt Ledger Tag (`ponytail-debt`):** Every deliberate shortcut with a known scale/feature limit MUST carry an inline comment:
    `// shortcut: <the limit>, <when to upgrade>`
-5. **Never Cut:** Validation at trust boundaries, error handling that prevents data loss, security, accessibility, or anything the user explicitly asked for.
-6. **Mandatory Closing Lines:** End engineering replies with 1–2 lines:
+7. **Never Cut:** Validation at trust boundaries, error handling that prevents data loss, structured logging, security, accessibility, or anything the user explicitly asked for.
+8. **Mandatory Closing Lines:** End engineering replies with 1–2 lines:
    - `Skipped / Not checked: <what was omitted or not verified>`
    - `Risk: <any operational risk the user must know>`
 
@@ -75,20 +85,74 @@ Trigger roles explicitly via `@orchestrator`, `@lead-pm`, `@pm`, `@uiux`, `@lead
 
 ---
 
-## 3. Tiered Execution (Fast-Path vs Full-Lifecycle)
-Orchestrator classifies every incoming request before spawning roles:
-- **Tier 1 (Hotfix / Micro-change ONLY):** Hanya untuk perbaikan typo 1 baris, ganti nilai variabel, atau bugfix kecil pada kode yang SUDAH ADA. `Orchestrator` -> `Engineer` (`surgical-patch` + `diagnosing-bugs`) -> `QA` (`verify-and-stop`) -> Done.
-- **Tier 2 (UI / Styling / Copy):** `Orchestrator` -> `UI/UX` (`taste-skill 2.5.1` + Figma) -> `Engineer` -> `QA` (`gate.mjs` + `consistency.mjs`) -> Done.
-- **Tier 3 (New Feature / App / Component / Epic):**
-  Semua pembuatan fitur baru, halaman baru, atau komponen baru **WAJIB TIER 3**:
+## 3. Tiered Execution, PRD Drift Detection & Structured Folder Hierarchy
+
+### A. Standardized Industry Folder Architecture (Living Docs vs Per-Feature Specs)
+Untuk mencegah fitur baru menimpa (*overwrite*) spesifikasi fitur lama, seluruh dokumentasi dibagi menjadi **Living Global Docs (Wajib Mode Update/Append, Dilarang Replace)** dan **Isolated Feature/Patch Workspaces**:
+
+```text
+project-root/
+├── GLOSSARY.md                                 # [Global Living Doc] Kamus Domain Kanonik (@lead-pm & @lead-engineer)
+├── .agents/
+│   ├── TEAM_STATE.json                         # [State & Gate Locks] Status tiket aktif & 4 Gate Locks (@orchestrator)
+│   ├── LESSONS_LEARNED.md                      # [Living Memory] Pola bug & pencegahan berulang (Semua Role)
+│   └── METRICS.log                             # [Audit Trail] Riwayat rilis SemVer (@orchestrator)
+└── docs/
+    ├── 00-product/                             # [Living Product Blueprint — APPEND/UPDATE ONLY, NEVER OVERWRITE]
+    │   ├── scope.md                            # Master Scope, Stakeholder, RICE, & Risk Matrix (@lead-pm)
+    │   └── prd.md                              # Master PRD Index & Global NFRs (@pm, audited by @lead-pm)
+    ├── 01-design/                              # [Living Design System — APPEND/UPDATE ONLY, NEVER OVERWRITE]
+    │   ├── design-spec.md                      # Master Design Tokens, Typography, & Component Anatomy (@uiux)
+    │   ├── preview.html                        # Interactive Self-Contained HTML Preview (@uiux)
+    │   ├── figma-console.js                    # Figma Dev Console Fallback (@uiux)
+    │   └── figma-plugin/                       # Figma Plugin Manifest & Code Fallback (@uiux)
+    ├── 02-architecture/                        # [Living System Architecture — APPEND/UPDATE ONLY, NEVER OVERWRITE]
+    │   ├── architecture.md                     # C4 Diagrams, Deep Modules, Public Seams, DB Schema, API Contracts (@lead-engineer)
+    │   └── adr/                                # Architectural Decision Records (@lead-engineer)
+    │       └── NNNN-<decision-slug>.md
+    ├── 03-features/                            # [Per-Feature Workspace — 1 Folder Per Fitur, Tidak Menimpa Fitur Lama!]
+    │   └── FEAT-XXX-<slug>/
+    │       ├── scope.md                        # Scope & RICE khusus fitur ini (@lead-pm)
+    │       ├── prd.md                          # User Stories, Gherkin ACs, FR Matrix khusus fitur ini (@pm)
+    │       ├── tasks.md                        # Tracer-Bullet Vertical Slice Tasks & DoD khusus fitur ini (@lead-engineer & @engineer)
+    │       ├── code-review.md                  # 3-Engine Story Code Review khusus fitur ini (@lead-engineer)
+    │       ├── test-plan.md                    # Shift-Left Test Plan + Concrete Test Vectors (@qa Phase 1)
+    │       └── qa-report.md                    # Hasil Eksekusi Test, Visual Gate & Sertifikasi Rilis (@qa Phase 2)
+    └── 04-patches/                             # [Bugfix (Tier 1) & UI Revision (Tier 2) Workspace]
+        └── FIX-XXX-<slug>/
+            ├── bug-diagnosis.md                # 6-Phase Root Cause & Tight Red Loop (@engineer / @qa)
+            ├── code-review.md                  # Diff Review (@lead-engineer)
+            └── qa-report.md                    # Regression & Visual Verification Report (@qa)
+```
+*(Catatan: Pointer file aktif selalu dicatat di `.agents/TEAM_STATE.json` pada objek `artifacts`. Alias `docs/*.md` tetap didukung untuk kompatibilitas, namun dilarang keras menghapus spesifikasi fitur sebelumnya).*
+
+### B. Smart Scope & PRD Drift Detection (Deteksi Perubahan Bisnis pada Bugfix / UI Fix)
+Sebelum mengeksekusi **Tier 1 (Bugfix)** atau **Tier 2 (Revisi Desain)**, `@orchestrator`, `@uiux`, dan `@engineer` **WAJIB** memeriksa apakah permintaan User mengubah alur bisnis atau menambah fitur terhadap PRD yang sudah ada:
+1. **Murni Bugfix (Tier 1):** Perilaku kode menyimpang dari PRD/Arsitektur yang sudah ada -> **TIDAK PERLU buat PRD baru**.
+2. **Murni Revisi Desain/Copy (Tier 2):** Perubahan warna, spacing, layout, atau teks tanpa mengubah aturan bisnis/data di PRD -> **TIDAK PERLU buat PRD baru** (cukup update `design-spec.md` & `preview.html`).
+3. **⚠️ Eskalasi Perubahan Bisnis / PRD Drift (Bugfix atau Revisi UI yang Ternyata Mengubah Bisnis Proses atau Menambah Fitur):**
+   - Jika saat analisis ditemukan bahwa permintaan "bugfix" atau "revisi UI" dari User ternyata **mengubah aturan bisnis, mengubah validasi data, mengubah hak akses aktor, atau menambah fitur baru** yang belum ada di PRD:
+   - Role terkait **DILARANG KERAS** langsung mengubah kode di luar ruang lingkupnya!
+   - `@orchestrator` **WAJIB BERHENTI** dan memberi tahu User secara eksplisit:
+     > *"⚠️ **Peringatan Perubahan Bisnis/PRD:** Permintaan ini bukan sekadar bugfix/revisi tampilan biasa, melainkan mengubah proses bisnis / menambah fitur pada PRD (`<jelaskan bagian PRD yang berubah>`). Sesuai standar tim, perubahan ini memerlukan update PRD & Arsitektur terlebih dahulu (Eskalasi ke Tier 3 -> Gate 1). Apakah Anda setuju kita meng-update PRD terlebih dahulu?"*
+
+### C. Tiered Execution (Semua Tier Wajib Lewat Gate 1.5 PR & Gate 2 Release)
+- **Tier 1 (Pure Bugfix / Hotfix — Zero PRD Change):**
+  `Orchestrator (Cek PRD Drift)` -> `Engineer` (`diagnosing-bugs` + `surgical-patch` + Regression Test di branch `fix/<slug>`) -> `Lead Engineer (Code Review)` -> **[Gate 1.5: PR/MR Approval User]** -> `QA` (`verify-and-stop` di `main`) -> **[Gate 2: Release Approval User (`PATCH vX.Y.Z`)]** -> Deploy & Live Healthcheck.
+- **Tier 2 (Pure UI / Styling / Copy Revision — Zero Business Logic Change):**
+  `Orchestrator (Cek PRD Drift)` -> `UI/UX` (`taste-skill 2.5.1` + Figma + update `design-spec.md` & `preview.html`) -> **[Gate 1: UI Approval User]** -> `Engineer` (di branch `style/<slug>`) -> `Lead Engineer (Code Review)` -> **[Gate 1.5: PR/MR Approval User]** -> `QA` (`gate.mjs` + `consistency.mjs` di `main`) -> **[Gate 2: Release Approval User]** -> Deploy & Live Healthcheck.
+- **Tier 3 (New Feature / App / Component / Epic / PRD Business Change):**
+  Semua pembuatan fitur baru, penambahan fitur, atau perubahan proses bisnis PRD **WAJIB TIER 3**:
   1. `Orchestrator` -> **[Gate 0: Discovery Interview (`grilling` + `ask_question`)]**
   2. `Lead PM (Phase 1: Scope & GLOSSARY.md)` -> `PM (PRD via to-spec & to-tickets)` -> `Lead PM (Phase 2: PRD Audit)`
-  3. (`UI/UX` || `Lead Engineer` || `QA Phase 1: Test Plan` in parallel) -> **[Gate 1: Hard Stop Approval]**
-  4. `Engineer`: Koding TDD vertikal per Story di branch `feat/<ticket-slug>`
-  5. `Lead Engineer (Phase 2)`: 2-Axis Code Review (`code-review` + `ponytail-review` + `caveman-review`) di branch `feat/<ticket-slug>`. Jika lolos (`FINAL_CODE_APPROVED`) -> **Push branch dan buat Pull Request / Merge Request ke branch `main` (Dev Repo `origin`)**
-  6. **[Gate 1.5: PR/MR Approval — DILARANG AUTO-MERGE]** -> Orchestrator berhenti dan menunggu User me-review diff dan meng-approve / me-merge PR ke `main`.
-  7. `QA (Phase 2)`: Pengujian E2E, CI check, `taste-skill` gate check, & Visual Diff langsung di branch `main` (Dev Repo `origin`) setelah PR di-merge.
-  8. **[Gate 2: Release Approval]** -> Setelah `main` lolos QA (`STATUS: APPROVED`) & disetujui User -> Tag SemVer (`vX.Y.Z`), jalankan **Opsi Deployment** (Push ke **Repository Production (`production`)** untuk trigger CD / GitHub Actions SSH / Direct VPS Docker-PM2 / PaaS) + **Post-Deploy Live Healthcheck & Auto-Rollback**!
+  3. **Step 3A (Paralel):** (`UI/UX`: Design Spec + Preview + Figma `||` `Lead Engineer`: Architecture + Seams + Tasks `TASK-XX`)
+  4. **Step 3B (Sequential Shift-Left QA):** Begitu `design-spec.md`, `architecture.md`, dan `tasks.md` selesai -> `QA (Phase 1: Shift-Left Test Plan)` menulis `test-plan.md` yang memetakan 1:1 setiap `Story N / TASK-XX` ke `TC-XX` lengkap dengan **nama Public Seam asli, API Endpoint asli, UI Selector asli, dan Concrete Test Vectors (Input Payload -> Expected Output)**.
+  5. **[Gate 1: Hard Stop Blueprint Approval]** -> User me-review seluruh dokumen Blueprint & 4 Tabel Token UI/UX.
+  6. `Engineer`: Koding TDD vertikal per Story di branch `feat/<ticket-slug>` (mengimplementasikan test dari `test-plan.md`).
+  7. `Lead Engineer (Phase 2)`: 3-Engine Code Review (`code-review` + `ponytail-review` + `caveman-review`) per Story di branch `feat/<ticket-slug>`. Jika semua Story lolos (`FINAL_CODE_APPROVED`) -> **Push branch dan buat Pull Request / Merge Request ke branch `main` (Dev Repo `origin`)**.
+  8. **[Gate 1.5: PR/MR Approval — DILARANG AUTO-MERGE]** -> Orchestrator berhenti total (`END TURN`) dan menunggu User me-review diff serta meng-approve / me-merge PR ke `main`.
+  9. `QA (Phase 2)`: Mengecek `"pr_user_approved": true` (*Double-Lock*), lalu menjalankan pengujian E2E Playwright, CI check, `taste-skill` Headless Chrome gate check, & Visual Diff langsung di branch `main` (Dev Repo `origin`).
+  10. **[Gate 2: Release Approval]** -> Setelah `main` lolos QA (`STATUS: APPROVED`), Orchestrator berhenti menunggu persetujuan rilis User -> Tag SemVer (`vX.Y.Z`), jalankan **Opsi Deployment**, + **Post-Deploy Live Healthcheck & Auto-Rollback**!
 
 ---
 
@@ -148,11 +212,11 @@ Setiap role memiliki batas yurisdiksi mutlak. Dilarang keras mengambil alih peke
 
 | Role | HANYA Boleh Menulis / Mengedit (*Write Whitelist*) | DILARANG KERAS Menyentuh (*Hard Blacklist*) |
 | :--- | :--- | :--- |
-| **`@orchestrator`** | `.agents/TEAM_STATE.json`, `.agents/METRICS.log`, `.agents/LESSONS_LEARNED.md` + perintah Git (`branch`, `tag`, `push`). | Semua kode aplikasi (`src/*`), test (`tests/*`), seluruh dokumen spesifikasi (`docs/*.md`, `GLOSSARY.md`, `docs/adr/*`), serta **DILARANG KERAS melewati Gate 0 / Gate 1 / PR Gate tanpa persetujuan eksplisit User di turn terpisah (`gate_1_user_approved: true`, `pr_user_approved: true`) dan DILARANG MERGE LANGSUNG KE `main`**. |
-| **`@lead-pm`** | `docs/scope.md`, `GLOSSARY.md`, dan blok status `PRD VERDICT` di header `docs/prd.md`. | Isi detail User Story di `docs/prd.md`, desain UI (`docs/design-spec.md`, `docs/preview.html`), arsitektur (`docs/architecture.md`, `docs/tasks.md`, `docs/adr/*`), serta kode (`src/*`, `tests/*`). |
-| **`@pm`** | `docs/prd.md`. | `docs/scope.md`, `GLOSSARY.md`, `docs/design-spec.md`, `docs/preview.html`, `docs/architecture.md`, `docs/tasks.md`, `docs/test-plan.md`, serta kode (`src/*`, `tests/*`). |
-| **`@uiux`** | `docs/design-spec.md`, `docs/preview.html`, `docs/figma-plugin/*`, `docs/figma-console.js`, `.taste-skill/*`, dan Figma Canvas. | Kode aplikasi produksi (`src/*`, `app/*`, `components/*`, `package.json`), `docs/scope.md`, `docs/prd.md`, `docs/architecture.md`, `docs/tasks.md`, `docs/test-plan.md`. |
-| **`@lead-engineer`** | `docs/architecture.md`, `docs/tasks.md`, `docs/adr/NNNN-*.md`, `docs/code-review.md`, dan `GLOSSARY.md` (istilah domain modul). | **Kode aplikasi produksi (`src/*`, `app/*`) & file unit test (`tests/*`)** (meski saat Code Review menemukan bug, wajib tulis di `docs/code-review.md` untuk diperbaiki `@engineer`), `docs/scope.md`, `docs/prd.md`, `docs/design-spec.md`, `docs/qa-report.md`. |
-| **`@engineer`** | Kode aplikasi (`src/*`, `app/*`, `public/*`, `package.json`, `Dockerfile`, `.env.example`), unit/seam test (`tests/*`), dan centang `[x] TASK-XX` di `docs/tasks.md` (**HANYA di branch `feat/<ticket-slug>`**). | Branch `main` / `production` (dilarang commit/merge langsung ke `main`), isi spesifikasi di `docs/scope.md`, `docs/prd.md`, `docs/design-spec.md`, `docs/architecture.md`, `docs/code-review.md`, `docs/test-plan.md`, `docs/qa-report.md`. |
-| **`@qa`** | `docs/test-plan.md`, `docs/qa-report.md`, dan artefak cek di `.taste-skill/*`. | **Kode aplikasi produksi (`src/*`, `app/*`, `components/*`)** (dilarang memperbaiki bug sendiri; wajib lapor di `docs/qa-report.md`), serta dilarang mengubah `docs/prd.md`, `docs/design-spec.md`, atau `docs/architecture.md`. |
+| **`@orchestrator`** | `.agents/TEAM_STATE.json`, `.agents/METRICS.log`, `.agents/LESSONS_LEARNED.md` + perintah Git (`branch`, `tag`, `push`). | Semua kode aplikasi (`src/*`), test (`tests/*`), seluruh dokumen spesifikasi (`docs/**`, `GLOSSARY.md`), serta **DILARANG KERAS melewati Gate 0 / Gate 1 / Gate 1.5 (PR) / Gate 2 (Release) tanpa persetujuan eksplisit User di turn terpisah (`gate_1_user_approved: true`, `pr_user_approved: true`, `gate_2_user_approved: true`) dan DILARANG MERGE LANGSUNG KE `main`**. |
+| **`@lead-pm`** | `GLOSSARY.md`, `docs/00-product/scope.md` (mode append/update), `docs/03-features/*/scope.md`, `docs/scope.md`, dan blok status `PRD VERDICT` di header `prd.md`. | Isi detail User Story di `prd.md`, desain UI (`docs/01-design/*`, `docs/design-spec.md`, `docs/preview.html`), arsitektur (`docs/02-architecture/*`, `docs/architecture.md`, `tasks.md`), serta kode (`src/*`, `tests/*`). |
+| **`@pm`** | `docs/00-product/prd.md` (mode append/update), `docs/03-features/*/prd.md`, `docs/prd.md`. | `scope.md`, `GLOSSARY.md`, `design-spec.md`, `preview.html`, `architecture.md`, `tasks.md`, `test-plan.md`, serta kode (`src/*`, `tests/*`). |
+| **`@uiux`** | `docs/01-design/*`, `docs/design-spec.md` (mode append/update), `docs/preview.html`, `docs/figma-plugin/*`, `docs/figma-console.js`, `.taste-skill/*`, dan Figma Canvas. | Kode aplikasi produksi (`src/*`, `app/*`, `components/*`, `package.json`), `scope.md`, `prd.md`, `architecture.md`, `tasks.md`, `test-plan.md`, serta dilarang menambah fitur bisnis baru di luar PRD. |
+| **`@lead-engineer`** | `docs/02-architecture/**`, `docs/architecture.md` (mode append/update), `docs/adr/NNNN-*.md`, `docs/03-features/*/tasks.md`, `docs/03-features/*/code-review.md`, `docs/04-patches/*/code-review.md`, `docs/tasks.md`, `docs/code-review.md`, dan `GLOSSARY.md` (istilah domain modul). | **Kode aplikasi produksi (`src/*`, `app/*`) & file unit test (`tests/*`)** (meski saat Code Review menemukan bug, wajib tulis di `code-review.md` untuk diperbaiki `@engineer`), `scope.md`, `prd.md`, `design-spec.md`, `qa-report.md`. |
+| **`@engineer`** | Kode aplikasi (`src/*`, `app/*`, `public/*`, `package.json`, `Dockerfile`, `.github/workflows/*`, `.env.example`), unit/seam test (`tests/*`), `docs/04-patches/*/bug-diagnosis.md`, dan centang `[x] TASK-XX` di `tasks.md` (**HANYA di branch `feat/<slug>`, `fix/<slug>`, atau `style/<slug>`**). | Branch `main` / `production` (dilarang commit/merge langsung ke `main`), isi spesifikasi di `scope.md`, `prd.md`, `design-spec.md`, `architecture.md`, `code-review.md`, `test-plan.md`, `qa-report.md`, serta **dilarang mengubah logika bisnis yang menyimpang dari PRD tanpa eskalasi ke User**. |
+| **`@qa`** | `docs/03-features/*/test-plan.md`, `docs/03-features/*/qa-report.md`, `docs/04-patches/*/qa-report.md`, `docs/test-plan.md`, `docs/qa-report.md`, dan artefak cek di `.taste-skill/*`. | **Kode aplikasi produksi (`src/*`, `app/*`, `components/*`)** (dilarang memperbaiki bug sendiri; wajib lapor di `qa-report.md`), serta dilarang mengubah `prd.md`, `design-spec.md`, atau `architecture.md`. |
 
