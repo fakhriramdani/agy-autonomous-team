@@ -1,24 +1,30 @@
 # Autonomous Team Kit (`AGENTS.md`) — 100% Full-Skill Enforcement
 
-## 0. Dedicated Repo Initialization & Removal Guard (`/agy-team` — Zero Collision & Zero Interference)
+## 0. Dedicated Repo Initialization (2 Modes: Standard vs Open-Source Stealth) & Removal Guard (`/agy-team`)
 Although this plugin is installed globally, **it MUST NEVER collide with generic `@orchestrator` / `@engineer` mappings in other tools and MUST NOT interfere with repositories that have not explicitly initialized it**:
 
-1. **Dedicated Repo Commands (In-Chat Slash Command OR Terminal CLI `agy-team`):**
-   - **Initialize / Activate in Current Repo:** **`/agy-team init`** (or terminal: `agy-team init`)
-     Creates `.agents/TEAM_STATE.json` (`"enabled": true`) in the current repository and starts **Gate 0: Discovery Interview** (`skill: agy-team`).
-   - **Remove / Deactivate from Current Repo:** **`/agy-team remove`** or **`/agy-team off`** (or terminal: `agy-team remove`)
-     Deletes `.agents/TEAM_STATE.json` and `.agents/` from the current repository (preserving `docs/` unless `--purge-docs` is requested) and immediately returns the repository to 100% standard default AI assistant mode.
-   - **Check Repo Status:** **`/agy-team status`** (or terminal: `agy-team status`)
-     Displays whether `agy-autonomous-team` is `ACTIVE` or `DORMANT` in the current repository and shows current ticket/gate progress.
+1. **2 Initialization Setups & Removal Commands (In-Chat Slash Command OR Terminal CLI `agy-team`):**
+   - **Setup 1 — Standard Mode (Private/Team Repo, Docs Tracked in Git):**
+     **`/agy-team init`** (or terminal: `agy-team init`)
+     Creates `.agents/TEAM_STATE.json` (`"enabled": true, "repo_mode": "standard"`) and starts **Gate 0: Discovery Interview**. All `docs/` and code are tracked in Git.
+   - **Setup 2 — Open-Source Stealth Mode (Public Repo, ONLY Engineer Code Commits in Git):**
+     **`/agy-team init-oss`** or **`/agy-team init --oss`** (or terminal: `agy-team init-oss`)
+     Creates `.agents/TEAM_STATE.json` (`"enabled": true, "repo_mode": "oss-stealth"`), automatically registers all internal workflow paths (`.agents/`, `.taste-skill/`, `GLOSSARY.md`, `docs/00-product/`..`docs/04-patches/`) into **`.git/info/exclude`** (keeping them 100% local on disk without touching the public `.gitignore`), and locks Git so **ONLY `@engineer`'s clean source code & test commits** ever enter Git history (`git log`).
+   - **Remove / Deactivate from Current Repo:**
+     **`/agy-team remove`** or **`/agy-team off`** (or terminal: `agy-team remove`)
+     Deletes `.agents/`, `.taste-skill/`, cleans the exclude block from `.git/info/exclude` (preserving `docs/` unless `--purge-docs` is passed), and immediately returns the repository to 100% standard default AI assistant mode.
+   - **Check Repo Status:**
+     **`/agy-team status`** (or terminal: `agy-team status`)
+     Displays whether `agy-autonomous-team` is `ACTIVE` (`standard` or `oss-stealth`) or `DORMANT`.
 
 2. **ACTIVE MODE (Autonomous Team Workflow Enabled):**
    All rules below (7-role routing, Gate 0 / Gate 1 / Gate 1.5 / Gate 2 locks, `docs/` folder hierarchy, role write-whitelists, and `caveman`/`ponytail` closing lines) are **100% ACTIVE ONLY WHEN**:
-   - The current workspace contains **`.agents/TEAM_STATE.json`** (created via `/agy-team init` or `agy-team init`), **OR**
-   - The User explicitly invokes **`/agy-team init`** in chat.
+   - The current workspace contains **`.agents/TEAM_STATE.json`** (created via `/agy-team init` or `/agy-team init-oss`), **OR**
+   - The User explicitly invokes **`/agy-team init`** or **`/agy-team init-oss`** in chat.
    *(Once `.agents/TEAM_STATE.json` exists in the repo, all follow-up messages and `@orchestrator` / `@lead-pm` / `@pm` / `@uiux` / `@lead-engineer` / `@engineer` / `@qa` tags in that repo route through this workflow automatically).*
 
 3. **DORMANT MODE (Default Assistant in Uninitialized Repositories — Anti-Collision):**
-   If the current workspace does **NOT** contain `.agents/TEAM_STATE.json` **AND** the User has **NOT** called `/agy-team init`:
+   If the current workspace does **NOT** contain `.agents/TEAM_STATE.json` **AND** the User has **NOT** called `/agy-team init` or `/agy-team init-oss`:
    - **Stay 100% DORMANT.** Generic mentions like `@orchestrator` or `@engineer` in an uninitialized repo do **NOT** activate this workflow (preventing collisions with other plugins/mappings). Operate as a normal default AI coding assistant.
 
 ---

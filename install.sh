@@ -110,19 +110,66 @@ if [ -x "${AGY_BIN}" ]; then
   fi
 fi
 
-# Install dedicated `agy-team` CLI helper (init / remove / off / status) to ~/.local/bin/agy-team
+# Install dedicated `agy-team` CLI helper (init / init-oss / remove / off / status) to ~/.local/bin/agy-team
 mkdir -p "${HOME}/.local/bin"
 cat > "${HOME}/.local/bin/agy-team" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 CMD="${1:-status}"
+ARG2="${2:-}"
+
+clean_git_exclude() {
+  if [ -f .git/info/exclude ]; then
+    sed -i '/# BEGIN AGY-TEAM-OSS-EXCLUDE/,/# END AGY-TEAM-OSS-EXCLUDE/d' .git/info/exclude
+  fi
+}
+
+add_git_exclude() {
+  if [ ! -d .git ]; then
+    git init -q
+  fi
+  mkdir -p .git/info
+  clean_git_exclude
+  cat >> .git/info/exclude <<'EXCL'
+# BEGIN AGY-TEAM-OSS-EXCLUDE
+/.agents/
+/.taste-skill/
+/GLOSSARY.md
+/docs/00-product/
+/docs/01-design/
+/docs/02-architecture/
+/docs/03-features/
+/docs/04-patches/
+/docs/scope.md
+/docs/prd.md
+/docs/design-spec.md
+/docs/preview.html
+/docs/figma-console.js
+/docs/figma-plugin/
+/docs/architecture.md
+/docs/tasks.md
+/docs/adr/
+/docs/code-review.md
+/docs/test-plan.md
+/docs/qa-report.md
+# END AGY-TEAM-OSS-EXCLUDE
+EXCL
+}
+
 case "${CMD}" in
   init)
+    if [ "${ARG2}" = "--oss" ]; then
+      MODE="oss-stealth"
+      add_git_exclude
+    else
+      MODE="standard"
+      clean_git_exclude
+    fi
     mkdir -p .agents
-    if [ ! -f .agents/TEAM_STATE.json ]; then
-      cat > .agents/TEAM_STATE.json <<JSON
+    cat > .agents/TEAM_STATE.json <<JSON
 {
   "enabled": true,
+  "repo_mode": "${MODE}",
   "ticket_id": "FEAT-001",
   "tier": 3,
   "stage": "GATE_0_DISCOVERY",
@@ -133,17 +180,37 @@ case "${CMD}" in
   "initialized_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 }
 JSON
-    fi
     touch .agents/LESSONS_LEARNED.md .agents/METRICS.log
-    echo "[OK] AGY Autonomous Team initialized in $(pwd) (.agents/TEAM_STATE.json created)."
+    echo "[OK] AGY Autonomous Team initialized in $(pwd) [repo_mode=${MODE}]."
+    ;;
+  init-oss)
+    add_git_exclude
+    mkdir -p .agents
+    cat > .agents/TEAM_STATE.json <<JSON
+{
+  "enabled": true,
+  "repo_mode": "oss-stealth",
+  "ticket_id": "FEAT-001",
+  "tier": 3,
+  "stage": "GATE_0_DISCOVERY",
+  "gate_0_user_approved": false,
+  "gate_1_user_approved": false,
+  "pr_user_approved": false,
+  "gate_2_user_approved": false,
+  "initialized_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+}
+JSON
+    touch .agents/LESSONS_LEARNED.md .agents/METRICS.log
+    echo "[OK] AGY Autonomous Team initialized in $(pwd) [repo_mode=oss-stealth: docs excluded via .git/info/exclude, code-only commits]."
     ;;
   remove|off|disable)
     rm -rf .agents .taste-skill
-    if [ "${2:-}" = "--purge-docs" ]; then
+    clean_git_exclude
+    if [ "${ARG2}" = "--purge-docs" ]; then
       rm -rf docs GLOSSARY.md
       echo "[OK] AGY Autonomous Team + docs/ completely purged from $(pwd)."
     else
-      echo "[OK] AGY Autonomous Team removed from $(pwd) (.agents/ deleted; docs/ preserved)."
+      echo "[OK] AGY Autonomous Team removed from $(pwd) (.agents/ & .git/info/exclude cleaned; docs/ preserved)."
     fi
     ;;
   status)
@@ -151,11 +218,11 @@ JSON
       echo "[ACTIVE] AGY Autonomous Team is ENABLED in $(pwd):"
       cat .agents/TEAM_STATE.json
     else
-      echo "[DORMANT] AGY Autonomous Team is NOT initialized in $(pwd). Run 'agy-team init' or type '/agy-team init' in chat to enable."
+      echo "[DORMANT] AGY Autonomous Team is NOT initialized in $(pwd). Run 'agy-team init' (Standard) or 'agy-team init-oss' (Open-Source Stealth)."
     fi
     ;;
   *)
-    echo "Usage: agy-team {init|remove|off|status} [--purge-docs]"
+    echo "Usage: agy-team {init|init-oss|remove|off|status} [--oss|--purge-docs]"
     exit 1
     ;;
 esac

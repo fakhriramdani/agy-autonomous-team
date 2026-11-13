@@ -115,15 +115,19 @@ When implementing UI components from `docs/01-design/design-spec.md` and `previe
   - All **7 Mandatory Component States** (`Default`, `Hover`, `Focus-Visible`, `Active`, `Loading/Skeleton`, `Empty State`, `Error State` under field).
   - Every interactive target `>= 44px` tall on mobile (`390px` / `320px`) with zero horizontal overflow.
 
-### 6. Atomic Commits (`caveman-commit`)
-Commit each completed `TASK-XX` individually while the repo is buildable:
-- Format: `<type>(<scope>): <imperative summary> (TASK-XX)`
-- Rules from `caveman-commit`:
-  - Imperative mood (`add`, `fix`, `remove` — never `added`, `adding`).
-  - `<= 50` chars ideal, hard cap `72` chars, lowercase, no trailing period.
-  - Add a commit body (wrapped at 72 chars) ONLY for non-obvious *why*, `BREAKING CHANGE:`, security fixes, data migrations, or reverts.
+### 6. Atomic Commits (`caveman-commit`) & Open-Source Stealth Mode (`repo_mode`)
+Check `"repo_mode"` in `.agents/TEAM_STATE.json` before staging/committing each completed `TASK-XX`:
+- **If `"repo_mode": "oss-stealth"` (Open-Source Public Repo Mode):**
+  - **ONLY stage and commit application source code, tests, and public project configs** (`git add src/ tests/ package.json ...`).
+  - **NEVER** run `git add -f` or stage any file in `.agents/`, `.taste-skill/`, `GLOSSARY.md`, or `docs/00-product`..`04-patches` (update `[x] TASK-XX` in `tasks.md` on local disk only — leave it ignored by `.git/info/exclude`).
+  - Use pure Conventional Commit format without internal task IDs: `<type>(<scope>): <imperative summary>` (so public `git log` looks 100% like a clean human open-source repository).
+- **If `"repo_mode": "standard"` (Default Private/Team Repo Mode):**
+  - Format: `<type>(<scope>): <imperative summary> (TASK-XX)`
+  - Mark `[x] TASK-XX` in `tasks.md` and include it in the commit.
+- General `caveman-commit` rules (both modes):
+  - Imperative mood (`add`, `fix`, `remove` — never `added`, `adding`), `<= 50` chars ideal (max `72`), lowercase, no trailing period.
+  - Add a commit body ONLY for non-obvious *why*, `BREAKING CHANGE:`, security fixes, migrations, or reverts.
   - **NEVER** include `"This commit does..."`, `"I"`, `"we"`, or `"Generated with AI"`.
-- Mark `[x] TASK-XX` in `tasks.md`.
 
 ### 7. Iterative Story Handoff & Pre-Flight Self-Healing
 - After finishing all `TASK-XX` under **Story N**:

@@ -18,9 +18,10 @@ Although installed globally, `agy-autonomous-team` stays **100% DORMANT** in uni
 
 | Action | In-Chat Command | Terminal CLI Command | What It Does |
 | :--- | :--- | :--- | :--- |
-| **Initialize Repo** | `/agy-team init` | `agy-team init` | Creates `.agents/TEAM_STATE.json` (`"enabled": true`) in the current repo and launches **Gate 0: Discovery Interview**. |
-| **Check Status** | `/agy-team status` | `agy-team status` | Shows whether `agy-autonomous-team` is `ACTIVE` or `DORMANT` in the current repo and displays active ticket/gate state. |
-| **Remove from Repo** | `/agy-team remove` *(or `/agy-team off`)* | `agy-team remove` | Deletes `.agents/` and `.taste-skill/` (preserving `docs/`) and immediately returns the repo to standard AI assistant mode. |
+| **Initialize Standard (Private/Team Repo)** | `/agy-team init` | `agy-team init` | Creates `.agents/TEAM_STATE.json` (`"repo_mode": "standard"`). Tracks both code and `docs/` in Git. |
+| **Initialize Open-Source (Public Stealth Repo)** | `/agy-team init-oss` *(or `/agy-team init --oss`)* | `agy-team init-oss` | Creates `.agents/TEAM_STATE.json` (`"repo_mode": "oss-stealth"`), adds `.agents/`, `.taste-skill/`, `GLOSSARY.md`, and `docs/00-product`..`04-patches` to **`.git/info/exclude`** (keeping `.gitignore` untouched), so **ONLY `@engineer`'s clean source code commits** enter the public Git repo. |
+| **Check Status** | `/agy-team status` | `agy-team status` | Shows whether `agy-autonomous-team` is `ACTIVE` (`standard` or `oss-stealth`) or `DORMANT` in the current repo. |
+| **Remove from Repo** | `/agy-team remove` *(or `/agy-team off`)* | `agy-team remove` | Deletes `.agents/`, `.taste-skill/`, cleans `.git/info/exclude` (preserving `docs/`), and returns the repo to standard AI assistant mode. |
 | **Full Purge** | `/agy-team remove --purge-docs` | `agy-team remove --purge-docs` | Deletes `.agents/`, `.taste-skill/`, `docs/`, and `GLOSSARY.md` from the current repo. |
 
 Once a repository is initialized via `/agy-team init`, all follow-up prompts and role tags (`@orchestrator`, `@lead-pm`, `@pm`, `@uiux`, `@lead-engineer`, `@engineer`, `@qa`) route automatically within that repository.
