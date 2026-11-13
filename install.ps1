@@ -71,6 +71,9 @@ echo Usage: agy-team {init^|init-oss^|remove^|off^|status} [--oss^|--purge-docs]
 exit /b 1
 :init_oss
 if not exist ".git" git init -q
+if not exist "LICENSE" (
+    if exist "%USERPROFILE%\.gemini\config\plugins\autonomous-team-kit\LICENSE" copy /y "%USERPROFILE%\.gemini\config\plugins\autonomous-team-kit\LICENSE" "LICENSE" > nul
+)
 if not exist ".git\info" mkdir ".git\info"
 powershell -NoProfile -Command "$p='.git\info\exclude'; $b=\"# BEGIN AGY-TEAM-OSS-EXCLUDE`r`n/.agents/`r`n/.taste-skill/`r`n/GLOSSARY.md`r`n/docs/00-product/`r`n/docs/01-design/`r`n/docs/02-architecture/`r`n/docs/03-features/`r`n/docs/04-patches/`r`n/docs/scope.md`r`n/docs/prd.md`r`n/docs/design-spec.md`r`n/docs/preview.html`r`n/docs/figma-console.js`r`n/docs/figma-plugin/`r`n/docs/architecture.md`r`n/docs/tasks.md`r`n/docs/adr/`r`n/docs/code-review.md`r`n/docs/test-plan.md`r`n/docs/qa-report.md`r`n# END AGY-TEAM-OSS-EXCLUDE\"; if(Test-Path $p){$c=Get-Content -Raw $p; $c=[regex]::Replace([string]$c,'(?s)# BEGIN AGY-TEAM-OSS-EXCLUDE.*?# END AGY-TEAM-OSS-EXCLUDE','').TrimEnd(); Set-Content -Path $p -Value ($c+\"`r`n\"+$b)}else{Set-Content -Path $p -Value $b}"
 if not exist ".agents" mkdir ".agents"

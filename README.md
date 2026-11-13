@@ -4,7 +4,7 @@
 [![Figma MCP](https://img.shields.io/badge/Figma-Official%20MCP-F24E1E.svg)](https://mcp.figma.com/mcp)
 [![Taste Skill](https://img.shields.io/badge/Taste%20Skill-2.5.1%20Anti--Slop-black.svg)](https://github.com/Leonxlnx/taste-skill)
 [![Architecture](https://img.shields.io/badge/Architecture-Matt%20Pocock%20Suite-8A2BE2.svg)](https://github.com/mattpocock/skills)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0.0-red.svg)](LICENSE)
 
 A production-grade, 100% self-contained multi-role software engineering organization for **Google Antigravity**, **Claude Code**, and **Gemini CLI**. Runs with zero configuration divergence on **Windows Local**, **macOS**, and **Headless Linux VPS**.
 
@@ -173,5 +173,6 @@ At **Gate 0**, `@orchestrator` and `@lead-engineer` configure one of 4 productio
 ---
 
 ## License
-MIT
+**PolyForm Noncommercial License 1.0.0** — Copyright (c) 2026 Fakhri Ramdani (`fakhriramdani1@gmail.com`).
+Free for personal study, academic research, and non-commercial evaluation. **Commercial use, resale, paid SaaS hosting, or use in for-profit business operations is strictly prohibited without a commercial license from the author.** See [LICENSE](LICENSE) for full legal terms.
 

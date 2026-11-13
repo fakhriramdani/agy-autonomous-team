@@ -161,6 +161,9 @@ case "${CMD}" in
     if [ "${ARG2}" = "--oss" ]; then
       MODE="oss-stealth"
       add_git_exclude
+      if [ ! -f LICENSE ] && [ -f "${HOME}/.gemini/config/plugins/autonomous-team-kit/LICENSE" ]; then
+        cp "${HOME}/.gemini/config/plugins/autonomous-team-kit/LICENSE" ./LICENSE
+      fi
     else
       MODE="standard"
       clean_git_exclude
@@ -185,6 +188,9 @@ JSON
     ;;
   init-oss)
     add_git_exclude
+    if [ ! -f LICENSE ] && [ -f "${HOME}/.gemini/config/plugins/autonomous-team-kit/LICENSE" ]; then
+      cp "${HOME}/.gemini/config/plugins/autonomous-team-kit/LICENSE" ./LICENSE
+    fi
     mkdir -p .agents
     cat > .agents/TEAM_STATE.json <<JSON
 {

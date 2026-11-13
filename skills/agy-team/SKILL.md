@@ -77,14 +77,17 @@ Use for **Public / Open-Source Repositories** where you want **ONLY `@engineer`'
    /docs/qa-report.md
    # END AGY-TEAM-OSS-EXCLUDE
    ```
-4. Enforce **Engineer-Only Clean Code Commits**:
+4. **Auto-Generate Non-Commercial License (`LICENSE`):**
+   - If the repository does not yet have a `LICENSE` file, copy `~/.gemini/config/plugins/autonomous-team-kit/LICENSE` (**PolyForm Noncommercial License 1.0.0**, Copyright Fakhri Ramdani) to `./LICENSE` so the public repository is legally protected against unauthorized third-party commercialization from Day 1.
+5. Enforce **Engineer-Only Clean Code Commits**:
    - All roles (`@lead-pm`, `@pm`, `@uiux`, `@lead-engineer`, `@qa`) still write and read `docs/**` and `.agents/**` on local disk as usual, but **NEVER run `git add` or `git commit` on them**.
-   - `@engineer` stages and commits **ONLY application code & tests** (`src/`, `app/`, `tests/`, `package.json`, public `README.md`, etc.) using clean Conventional Commits (`<type>(<scope>): <summary>`) without internal `(TASK-XX)` suffixes.
-5. Confirm to the User:
+   - `@engineer` stages and commits **ONLY application code, tests, and `LICENSE` / public `README.md`** (`src/`, `app/`, `tests/`, `package.json`, `LICENSE`, etc.) using clean Conventional Commits (`<type>(<scope>): <summary>`) without internal `(TASK-XX)` suffixes.
+6. Confirm to the User:
    > "🕵️‍♂️ **AGY Autonomous Team (`OPEN-SOURCE STEALTH MODE`) aktif di repository ini.**
    > - Seluruh dokumen internal (`.agents/`, `docs/00-product`..`04-patches`, `GLOSSARY.md`) tetap dibuat di disk lokal untuk panduan antar-role, tetapi otomatis dikecualikan via `.git/info/exclude` (tanpa mengotori `.gitignore` publik).
+   > - File `LICENSE` (**PolyForm Noncommercial License 1.0.0**) telah dipasang untuk melarang komersialisasi oleh pihak ketiga.
    > - Di GitHub publik nanti **100% hanya akan ada commit kode bersih dari `@engineer`**."
-6. Proceed to **Gate 0: Discovery Interview** (`role-orchestrator`).
+7. Proceed to **Gate 0: Discovery Interview** (`role-orchestrator`).
 
 ---
 
