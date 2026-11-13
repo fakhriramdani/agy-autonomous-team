@@ -10,14 +10,27 @@ rm -rf "${TARGET_DIR}"
 cp -R "${SCRIPT_DIR}" "${TARGET_DIR}"
 rm -rf "${TARGET_DIR}/figma-skills-backup" "${TARGET_DIR}/scripts"
 
-# Auto-register AGENTS.md globally so NO manual copy per project is ever needed:
-# 1. Antigravity (agy) global plugin rule: ~/.gemini/config/plugins/autonomous-team-kit/rules/AGENTS.md (already copied above)
-# 2. Gemini CLI global rule: ~/.gemini/GEMINI.md
-mkdir -p "${HOME}/.gemini"
-cp -f "${SCRIPT_DIR}/rules/AGENTS.md" "${HOME}/.gemini/GEMINI.md"
-# 3. Claude Code global rule: ~/.claude/CLAUDE.md
-mkdir -p "${HOME}/.claude"
-cp -f "${SCRIPT_DIR}/rules/AGENTS.md" "${HOME}/.claude/CLAUDE.md"
+# Safe Non-Destructive Global Registration for Gemini CLI (~/.gemini/GEMINI.md) & Claude Code (~/.claude/CLAUDE.md):
+# - Never overwrites existing user content outside <!-- BEGIN AGY-AUTONOMOUS-TEAM --> ... <!-- END AGY-AUTONOMOUS-TEAM -->
+# - If a previous run overwrote the whole file with raw AGENTS.md (starts with "# Autonomous Team Kit"), clean it first.
+update_global_md() {
+  local target_file="$1"
+  mkdir -p "$(dirname "${target_file}")"
+  if [ -f "${target_file}" ] && head -n 1 "${target_file}" | grep -q "^# Autonomous Team Kit"; then
+    rm -f "${target_file}"
+  fi
+  if [ -f "${target_file}" ]; then
+    sed -i '/<!-- BEGIN AGY-AUTONOMOUS-TEAM -->/,/<!-- END AGY-AUTONOMOUS-TEAM -->/d' "${target_file}"
+  fi
+  {
+    echo "<!-- BEGIN AGY-AUTONOMOUS-TEAM -->"
+    cat "${SCRIPT_DIR}/rules/AGENTS.md"
+    echo "<!-- END AGY-AUTONOMOUS-TEAM -->"
+  } >> "${target_file}"
+}
+
+update_global_md "${HOME}/.gemini/GEMINI.md"
+update_global_md "${HOME}/.claude/CLAUDE.md"
 
 # Avoid duplicate skill loading in Antigravity: remove duplicate standalone skill copies from ~/.gemini/config/skills
 if [ -d "${HOME}/.gemini/config/skills" ]; then

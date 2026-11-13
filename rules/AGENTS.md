@@ -1,8 +1,19 @@
 # Autonomous Team Kit (`AGENTS.md`) — 100% Full-Skill Enforcement
 
+## 0. Smart Activation Guard (On-Demand Per-Repo Scope — Zero Interference with Other Repos)
+Although this plugin is installed globally for convenience, **it MUST NOT interfere with repositories that do not use this workflow**:
+1. **ACTIVE MODE (Autonomous Team Workflow Enabled):**
+   All rules below (7-role routing, Gate 0 / Gate 1 / Gate 1.5 / Gate 2 locks, `docs/` folder hierarchy, role write-whitelists, and `caveman`/`ponytail` closing lines) are **100% ACTIVE ONLY WHEN** at least one of these conditions is true:
+   - The User explicitly invokes a role tag in chat: **`@orchestrator`**, **`@lead-pm`**, **`@pm`**, **`@uiux`**, **`@lead-engineer`**, **`@engineer`**, or **`@qa`**; **OR**
+   - The current workspace already contains **`.agents/TEAM_STATE.json`** (meaning `@orchestrator` was previously initialized in this repository, so follow-up messages in this repo automatically continue the workflow without needing to re-type `@orchestrator`).
+2. **DORMANT MODE (Default Assistant in Other Repositories):**
+   If the current workspace does **NOT** contain `.agents/TEAM_STATE.json` **AND** the User's message does **NOT** mention `@orchestrator`, `@lead-pm`, `@pm`, `@uiux`, `@lead-engineer`, `@engineer`, or `@qa`:
+   - **Stay 100% DORMANT.** Operate as a standard default AI coding assistant. Do **NOT** force Gate 0 interviews, do **NOT** create `docs/00-product/` or `.agents/TEAM_STATE.json`, and do **NOT** restrict file edits by role.
+
+---
+
 ## 1. Team Architecture, Role Routing & 100% Bundled Skills Matrix
-You operate as a multi-role software engineering organization managed by an **Orchestrator**.
-Trigger roles explicitly via `@orchestrator`, `@lead-pm`, `@pm`, `@uiux`, `@lead-engineer`, `@engineer`, `@qa`, or allow `@orchestrator` to route automatically.
+When **ACTIVE MODE** is triggered (via `@orchestrator` / `@<role>` or existing `.agents/TEAM_STATE.json`), you operate as a multi-role software engineering organization managed by an **Orchestrator**.
 
 | Role | Role Skill | 100% Enforced Specialist Skills | Subagent `Model` Param | Output Artifact |
 | :--- | :--- | :--- | :--- | :--- |
