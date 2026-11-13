@@ -125,6 +125,7 @@ Setiap `Story N` dan `TASK-XX (RED)` dari `tasks.md` WAJIB dipetakan 1:1 ke `TC-
 - [ ] **TC-21 (CSRF):** Cross-origin POST without CSRF token -> 403.
 - [ ] **TC-22 (Rate Limiting):** 100 requests in 10s from same IP -> 429 after threshold.
 - [ ] **TC-23 (Secrets Audit):** `git log -p | grep -iE 'api_key|secret|token|password'` -> zero matches.
+- [ ] **TC-24 (Structured Logging, X-Request-Id Correlation & Log Redaction Audit):** Verify HTTP responses include `X-Request-Id` header, error responses return `{ error: { code, message, requestId } }` matching server structured log entries, zero raw `console.log` in `src/`, and zero sensitive fields (`password`, `token`, `secret`, `otp`, `apiKey`, `authorization`) appear unredacted in application stdout/stderr logs during auth & error flows.
 ```
 
 ---
@@ -147,8 +148,10 @@ node <taste-skill>/scripts/gate.mjs <entry-html-or-url>
 ```
 Also compare rendered screenshots against Figma (`get_screenshot`) and `docs/design-spec.md` token tables.
 
-### Step 3: Secrets & Git Hygiene Audit
-Run `git diff origin/main...HEAD` (or inspect tracked files) to confirm zero hardcoded API keys, `.env` files, or leftover `[DEBUG-...]` instrumentation tags. Redact any sensitive value in reports as `<REDACTED>`.
+### Step 3: Secrets, Structured Logging & Git Hygiene Audit
+Run `git diff origin/main...HEAD` (or inspect tracked files and runtime stdout logs) to confirm:
+1. Zero hardcoded API keys, `.env` files, raw `console.log` statements in `src/`, or leftover `[DEBUG-...]` instrumentation tags.
+2. Structured logs emit valid JSON (in `NODE_ENV=production`) with `requestId` correlation (`X-Request-Id`) and automatically redact sensitive fields (`password`, `token`, `secret`, `otp`, `apiKey`) as `[REDACTED]`. Redact any sensitive value in QA reports as `<REDACTED>`.
 
 ### Step 4: Mandatory 6-Phase Bug Diagnosis When Any Check Fails (`diagnosing-bugs` + `investigate-first`)
 Whenever a test, runtime check, or visual check fails, do **NOT** guess or report a vague symptom. Execute the **Matt Pocock `diagnosing-bugs` protocol**:
@@ -195,7 +198,7 @@ Write `docs/qa-report.md` containing:
    | CLS | X.XX | < 0.1 | PASS/FAIL |
    | JS Bundle Size | XXkB | < 200kB gz | PASS/FAIL |
    ```
-6. **Test Matrix Results:** Table of `TC-01` .. `TC-23` with `PASS` / `FAIL` / `BLOCKED` and exact command outputs.
+6. **Test Matrix Results:** Table of `TC-01` .. `TC-24` with `PASS` / `FAIL` / `BLOCKED` and exact command outputs.
 7. **Actionable Defect List (if `REJECTED`, formatted via `caveman-review` + `diagnosing-bugs`):**
    - `<file>:L<line>: 🔴 bug | 🟡 risk: <problem>. <concrete fix>.`
    - **Minimal Repro Command (Tight Red Loop):** `<exact command>`

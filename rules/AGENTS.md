@@ -32,7 +32,7 @@ Trigger roles explicitly via `@orchestrator`, `@lead-pm`, `@pm`, `@uiux`, `@lead
    - Surgical edit (<=2 files) -> `cavecrew-builder` (`<path:line-range> — <change <=10 words> | verified: OK`).
    - Quick diff check -> `cavecrew-reviewer` (`path:line: 🔴/🟡/🔵/❓ <severity>: <problem>. <fix>. | totals: N🔴 N🟡 N🔵 N❓`).
 
-### B. Ponytail Engineering Philosophy (`ponytail` + `ponytail-audit` + `ponytail-review` + `ponytail-debt`)
+### B. Ponytail Engineering Philosophy, Clean Code Architecture (SOLID/DRY/KISS) & Structured Logging
 1. **Lazy Senior Developer Mode (YAGNI):** The best code is the code never written. Solve the whole problem with the least new code.
 2. **Pre-Edit Blast Radius Check:** Before editing, list every place the change must reach: callers, tests, fixtures, config, exports.
 3. **6-Step Smallest Complete Change Hierarchy:**
@@ -40,12 +40,22 @@ Trigger roles explicitly via `@orchestrator`, `@lead-pm`, `@pm`, `@uiux`, `@lead
    2. *Already in this codebase?* Reuse existing helpers, components, services, and patterns.
    3. *Standard library or native platform feature?* Use it before reaching for packages.
    4. *Installed dependency?* Use it; never add a new package for a few lines of code.
-   5. *Can it be one readable line?* Write one line.
+   5. *Can it be a clear, breakpoint-friendly statement?* Prefer readable, debuggable statements over clever chained one-liners or nested ternaries.
    6. *Otherwise:* Write the minimum code that works and handles edge cases.
-4. **Debt Ledger Tag (`ponytail-debt`):** Every deliberate shortcut with a known scale/feature limit MUST carry an inline comment:
+4. **Clean Code Architecture (SOLID, DRY, KISS) & Developer-Friendly Debuggability:**
+   - **Single Responsibility (SRP):** Separate HTTP/Route handlers (transport & Zod validation), Domain Services (business rules), and Repositories/Adapters (DB/external I/O).
+   - **Open/Closed, Liskov & Dependency Inversion (OCP/LSP/DIP):** Depend on Public Seam interfaces (`types.ts`) and discriminated unions (`Result<T, E>`), injecting DB/external adapters so modules are 100% testable without network/DB.
+   - **DRY (Rule of Three):** Deduplicate at 3+ call sites; keep 2 similar blocks separate if coupling them requires boolean flag arguments.
+   - **Low Cognitive Load & Breakpoint-Friendly Code:** Use Early Return guard clauses (max 2 indentation levels), max `30–40 lines` per function, max `300 lines` per file, max `3 positional parameters` (use a typed options object for 4+), assign intermediate results to descriptive `const` variables before `return` (so developers can set debugger breakpoints), and **NEVER write nested ternaries (`a ? b : c ? d : e`)**.
+5. **End-to-End Structured Logging & Error Traceability (`src/lib/logger.ts`):**
+   - **Dual-Mode Logger:** Human-friendly pretty logs in `development` (`[HH:mm:ss.SSS] LEVEL [module] (reqId): msg`) and single-line JSON in `production` (`timestamp`, `level`, `requestId`, `userId`, `module`, `action`, `durationMs`, `message`), controlled by `LOG_LEVEL`.
+   - **Correlation ID (`X-Request-Id` / `requestId`):** Generate/forward `X-Request-Id` at the HTTP boundary and include `requestId` in all logs and error responses (`{ error: { code, message, requestId } }`).
+   - **Contextual Error Chaining (`AppError`):** Never swallow errors (`catch (e) {}` is strictly forbidden) and never use raw `console.log` in `src/`. Wrap caught errors with `AppError(code, message, statusCode, details, { cause: err })` preserving stack traces.
+   - **Mandatory Auto-Redaction:** Automatically mask `password`, `token`, `secret`, `otp`, `apiKey`, `authorization`, `cvv`, and `creditCard` as `[REDACTED]` before logging.
+6. **Debt Ledger Tag (`ponytail-debt`):** Every deliberate shortcut with a known scale/feature limit MUST carry an inline comment:
    `// shortcut: <the limit>, <when to upgrade>`
-5. **Never Cut:** Validation at trust boundaries, error handling that prevents data loss, security, accessibility, or anything the user explicitly asked for.
-6. **Mandatory Closing Lines:** End engineering replies with 1–2 lines:
+7. **Never Cut:** Validation at trust boundaries, error handling that prevents data loss, structured logging, security, accessibility, or anything the user explicitly asked for.
+8. **Mandatory Closing Lines:** End engineering replies with 1–2 lines:
    - `Skipped / Not checked: <what was omitted or not verified>`
    - `Risk: <any operational risk the user must know>`
 

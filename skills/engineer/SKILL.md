@@ -63,25 +63,59 @@ Execute `docs/tasks.md` one Story and one vertical slice at a time (respecting `
 3. **GREEN Phase (`ponytail` + `lean-build`):**
    Follow the **6-Step Ponytail Hierarchy**:
    1. *Does it need to exist?* Skip unasked features/options/config.
-   2. *Already in this codebase?* Reuse existing helpers/components/patterns.
+   2. *Already in this codebase?* Reuse existing helpers/components/patterns (DRY).
    3. *Stdlib or native platform feature?* Use native platform features over libraries.
    4. *Installed dependency?* Use what is already in `package.json`; never add a package for a few lines.
-   5. *One readable line?* Write one line.
+   5. *Clear, breakpoint-friendly statement?* Prefer simple, readable expressions; **NEVER** write nested ternaries (`a ? b : c ? d : e`) or dense chained one-liners that prevent a developer from setting a debugger breakpoint.
    6. *Minimum complete code:* Write the smallest deep module implementation that passes the seam test and handles edge cases (strict TypeScript, zero `any`, discriminated unions, Zod validation at trust boundaries).
 4. **Debt Ledger Tagging (`ponytail-debt`):**
    Whenever you take a deliberate pragmatic shortcut with a known scale limit, add an inline comment in this exact format:
    `// shortcut: <the limit>, <when to upgrade>`
 
-### 3. Frontend Implementation (`design-taste-frontend` / `taste-skill 2.5.1`)
-When implementing UI components from `docs/design-spec.md` and `docs/preview.html`:
-- Bind the exact `:root` CSS variables (`--bg`, `--surface`, `--ink`, `--muted`, `--border`, `--accent`, `--accent-ink`) and curated fonts from `docs/design-spec.md`.
+### 3. Clean Code Architecture (SOLID, DRY, KISS) & Developer-Friendly Debuggability
+Every file you write must be effortless for a human developer to read, trace, and debug:
+1. **SOLID Principles & Strict Layer Separation:**
+   - **S — Single Responsibility:** Separate **Transport/Route Layer** (HTTP parsing, status codes, UI events), **Domain/Service Layer** (pure business rules — zero direct HTTP or raw DB driver details), and **Data/Adapter Layer** (DB queries, external APIs).
+   - **O & L — Open/Closed & Liskov Substitution:** Use TypeScript **discriminated unions** (`{ ok: true, data: T } | { ok: false, error: AppError }`) and consistent adapter interfaces so implementations (e.g., in-memory test adapter vs PostgreSQL production adapter) are 100% swappable.
+   - **I & D — Interface Segregation & Dependency Inversion:** Pass narrow dependencies into modules/functions rather than instantiating globals inside business logic.
+2. **DRY (Rule of Three) & KISS:**
+   - Extract duplicated logic into a shared helper once used in `>= 2–3` places, but avoid premature over-abstraction.
+   - Use **Early Return / Guard Clauses** at the top of functions (`if (!isValid) return ...`) — max **2 levels of `if/else` indentation**.
+3. **Cognitive Load Limits & Breakpoint-Friendly Code:**
+   - **Function Size:** Max **30–40 lines** per function (split complex flows into well-named private steps).
+   - **File Size:** Max **300 lines** per file (never create a monolithic *God File*).
+   - **Function Parameters:** Max **3 positional arguments**; for `>= 3` parameters, always pass a single **typed options object** (`createOrder({ userId, items, requestId })`).
+   - **Named Intermediate Variables:** Assign key intermediate results to descriptive `const` variables before returning so a developer stepping through a debugger can inspect exact values at every line.
+   - **TSDoc / JSDoc on Public Seams:** Document every exported module interface/function with a concise comment explaining **intent (*why*), `@param`, `@returns`, and error conditions**.
+
+### 4. End-to-End Structured Logging & Error Traceability (`src/lib/logger.ts`)
+Never leave code "silent" on failure or littered with raw `console.log`. Implement a unified, developer-friendly observability layer:
+1. **Centralized Dual-Mode Logger (`src/lib/logger.ts`):**
+   - Controlled via `LOG_LEVEL` (`debug | info | warn | error`, default `info`) and `NODE_ENV`:
+     - **Local Development (`NODE_ENV !== 'production'`):** Human-readable **Pretty Print** (`[HH:mm:ss] LEVEL [module:action] (reqId) message + formatted context/stack`) so developers can debug immediately in the terminal.
+     - **Production (`NODE_ENV === 'production'`):** Single-line **Structured JSON** (`{"ts":"...","level":"info","requestId":"...","module":"...","action":"...","durationMs":12,"msg":"..."}`) ready for `docker logs`, PM2, Loki, or Datadog.
+2. **End-to-End `requestId` / `correlationId` Tracing:**
+   - Attach a unique `requestId` (from incoming `X-Request-Id` header or `crypto.randomUUID()`) to every HTTP request and return `X-Request-Id` in the response header and error JSON body (`{ error: { code, message, requestId } }`).
+   - Pass `requestId` into module calls and log entries so a developer can run `grep <requestId>` and trace the entire lifecycle of any failed request.
+3. **5 Mandatory Log Points:**
+   - `INFO`: Server startup/shutdown & HTTP request completion (`method`, `path`, `status`, `durationMs`, `requestId`).
+   - `INFO`: Key domain state transitions (e.g., `auth.otp.verified`, `order.created` — log entity IDs, never raw PII).
+   - `WARN`: Validation failures (`400`), unauthorized/forbidden attempts (`401/403`), rate limits (`429`), or external API retries.
+   - `ERROR`: Caught operational/unexpected exceptions — **NEVER write an empty `catch (e) {}` (*Zero Silent Catch*)**. Always wrap or rethrow with **Error Cause Chaining** (`new AppError(code, message, { cause: err, context: { module, action, requestId } })`) and log full `stack` + `cause`.
+   - `DEBUG`: Step-by-step internal inputs/outputs at module seams (visible when `LOG_LEVEL=debug`).
+4. **Automatic PII & Secret Redaction in Logs:**
+   - The logger must automatically redact sensitive keys (`password`, `token`, `accessToken`, `refreshToken`, `secret`, `apiKey`, `otp`, `authorization`, `cvv`, `creditCard`) to `"[REDACTED]"` before writing to stdout/stderr.
+
+### 5. Frontend Implementation (`design-taste-frontend` / `taste-skill 2.5.1`)
+When implementing UI components from `docs/01-design/design-spec.md` and `preview.html`:
+- Bind the exact `:root` CSS variables (`--bg`, `--surface`, `--ink`, `--muted`, `--border`, `--accent`, `--accent-ink`) and curated fonts from `design-spec.md`.
 - Enforce all **9 House Rules** of `taste-skill 2.5.1`:
   - 1 section per screen (`1440x900`), equal `.wrap` edges, max 2 boxes deep (`nesting`), 1px hairline borders (`var(--border)`).
   - Hover micro-animations (`2px` card lift, `1.02–1.03` photo zoom, button step/press, `data-enter` hero entrance, 1–2 dealt moments, `prefers-reduced-motion` support).
   - All **7 Mandatory Component States** (`Default`, `Hover`, `Focus-Visible`, `Active`, `Loading/Skeleton`, `Empty State`, `Error State` under field).
   - Every interactive target `>= 44px` tall on mobile (`390px` / `320px`) with zero horizontal overflow.
 
-### 4. Atomic Commits (`caveman-commit`)
+### 6. Atomic Commits (`caveman-commit`)
 Commit each completed `TASK-XX` individually while the repo is buildable:
 - Format: `<type>(<scope>): <imperative summary> (TASK-XX)`
 - Rules from `caveman-commit`:
@@ -89,9 +123,9 @@ Commit each completed `TASK-XX` individually while the repo is buildable:
   - `<= 50` chars ideal, hard cap `72` chars, lowercase, no trailing period.
   - Add a commit body (wrapped at 72 chars) ONLY for non-obvious *why*, `BREAKING CHANGE:`, security fixes, data migrations, or reverts.
   - **NEVER** include `"This commit does..."`, `"I"`, `"we"`, or `"Generated with AI"`.
-- Mark `[x] TASK-XX` in `docs/tasks.md`.
+- Mark `[x] TASK-XX` in `tasks.md`.
 
-### 5. Iterative Story Handoff & Pre-Flight Self-Healing
+### 7. Iterative Story Handoff & Pre-Flight Self-Healing
 - After finishing all `TASK-XX` under **Story N**:
   1. Run static checks: `tsc --noEmit`, `npm run lint`, and unit/seam tests (`npm test`). Fix all errors until exit code is `0`.
   2. Hand off Story N to Orchestrator for **Lead Engineer Phase 2 Review** (`code-review` + `ponytail-review` + `caveman-review`).
@@ -99,25 +133,25 @@ Commit each completed `TASK-XX` individually while the repo is buildable:
 - After the final Story is approved (`FINAL_CODE_APPROVED`):
   1. **Production Build Check:** Run `npm run build` (must exit `0`).
   2. **Mandatory Runtime Smoke Test (Uji Nyala Nyata):**
-     - Start server in background, send HTTP request to `http://localhost:<port>` (or `/health`), verify `HTTP 200 OK` and zero console/runtime errors, then stop the background server cleanly.
+     - Start server in background, send HTTP request to `http://localhost:<port>` (or `/health`), verify `HTTP 200 OK`, verify `X-Request-Id` header & structured log output, and confirm zero unhandled runtime errors, then stop the background server cleanly.
   3. **Taste Skill Automated Check (for web UI projects):**
      - Run `node <taste-skill>/scripts/copy-lint.mjs` and `consistency.mjs --quick --widths 1440,390` if applicable.
 
 **Definition of Done (DoD) — Self-Check Before Handoff:**
-Sebelum menyerahkan Story ke Orchestrator untuk Lead Engineer Review, Engineer **WAJIB** memverifikasi semua item DoD dari `docs/tasks.md`:
-- [ ] Semua TASK-XX pada Story ini sudah `[x]` di `docs/tasks.md`
-- [ ] Seam test written and GREEN (`npm test -- --filter <story>`)
-- [ ] Semua Gherkin scenarios dari `docs/prd.md` untuk Story ini ter-cover
-- [ ] TypeScript strict mode passes (`tsc --noEmit` exit 0)
-- [ ] Linter passes (`npm run lint` exit 0)
-- [ ] UI matches `docs/design-spec.md` tokens & 7 states (jika applicable)
+Sebelum menyerahkan Story ke Orchestrator untuk Lead Engineer Review, Engineer **WAJIB** memverifikasi semua item DoD dari `tasks.md`:
+- [ ] Semua TASK-XX pada Story ini sudah `[x]` di `tasks.md`
+- [ ] Seam test written and GREEN (`npm test -- --filter <story>`) menggunakan Concrete Test Vectors dari `test-plan.md`
+- [ ] Semua Gherkin scenarios dari `prd.md` untuk Story ini ter-cover
+- [ ] TypeScript strict mode passes (`tsc --noEmit` exit 0) & Linter passes (`npm run lint` exit 0)
+- [ ] Clean Code & SOLID verified: fungsi `<= 40 baris`, file `<= 300 baris`, `<= 3` argumen posisi, zero nested ternary, zero silent `catch`
+- [ ] Structured Logger (`src/lib/logger.ts`) aktif dengan `requestId` tracing, `AppError` cause chaining, dan auto-redaction field sensitif (zero raw `console.log` liar)
+- [ ] UI matches `design-spec.md` tokens & 7 states (jika applicable)
 - [ ] Atomic commits pushed dengan format `caveman-commit`
-- [ ] NFR compliance checked: response time < budget, bundle size < budget (dari `docs/architecture.md`)
-- [ ] Zero `console.log` / `console.error` debug statements left in production code
+- [ ] NFR compliance checked: response time < budget, bundle size < budget (dari `architecture.md`)
 - [ ] Zero hardcoded credentials / API keys (semua via `process.env`)
-- [ ] Code comments use GLOSSARY.md canonical terms
+- [ ] Code comments & TSDoc pada Public Seam menggunakan istilah kanonik `GLOSSARY.md`
 
-### 6. Mandatory Ponytail & Caveman Closing Footer
+### 8. Mandatory Ponytail & Caveman Closing Footer
 End every completion reply in chat with:
 - Terse `caveman` summary of completed tasks and commit SHAs.
 - `Skipped / Not checked: <what was intentionally omitted or not checked>`
