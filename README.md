@@ -96,29 +96,51 @@ agy plugin list
 
 ---
 
-## 5. Typical Workflow Example
+## 5. Typical Workflow Example & Structured `docs/` Architecture
+
+```text
+project-root/
+├── GLOSSARY.md                                 # [Global Living Doc] Canonical Domain Vocabulary
+├── .agents/TEAM_STATE.json                     # [State & 4 Gate Locks] gate_0, gate_1, pr_user_approved, gate_2
+└── docs/
+    ├── 00-product/                             # [Living Product Blueprint — Append/Update Only]
+    │   ├── scope.md
+    │   └── prd.md
+    ├── 01-design/                              # [Living Design System — Append/Update Only]
+    │   ├── design-spec.md
+    │   ├── preview.html
+    │   └── figma-plugin/
+    ├── 02-architecture/                        # [Living Architecture — Append/Update Only]
+    │   ├── architecture.md
+    │   └── adr/NNNN-<slug>.md
+    ├── 03-features/FEAT-001-<slug>/            # [Isolated Feature Workspace — Never Overwrites Old Features]
+    │   ├── scope.md, prd.md, tasks.md, code-review.md, test-plan.md, qa-report.md
+    └── 04-patches/FIX-001-<slug>/              # [Bugfix (Tier 1) & UI Fix (Tier 2) Workspace]
+        └── bug-diagnosis.md, code-review.md, qa-report.md
+```
 
 ```text
 User: "@orchestrator buatkan sistem otentikasi WhatsApp OTP"
 
-1. Orchestrator -> [Gate 0 Discovery Interview via ask_question]
+1. Orchestrator -> Checks PRD Drift & runs [Gate 0 Discovery Interview via ask_question]
 2. User selects options
-3. Lead PM -> docs/scope.md (MoSCoW matrix) & GLOSSARY.md
-4. PM -> docs/prd.md (User Stories & Gherkin ACs)
+3. Lead PM -> GLOSSARY.md & docs/03-features/FEAT-001-auth-otp/scope.md (MoSCoW & RICE)
+4. PM -> docs/03-features/FEAT-001-auth-otp/prd.md (User Stories, Gherkin ACs, NFRs)
 5. Lead PM -> Audits & approves PRD
-6. Parallel Phase:
-   - UI/UX -> 4 Token Tables in chat + docs/design-spec.md + docs/preview.html + Figma MCP
-   - Lead Engineer -> docs/architecture.md + docs/tasks.md + docs/adr/
-   - QA -> docs/test-plan.md (Shift-Left Test Matrix)
-7. [Gate 1 Hard Stop] -> Agent prints complete Blueprint and stops.
-8. User replies: "Lanjut koding"
-9. Engineer -> Implements Story-by-Story using strict TDD on branch feat/auth-otp
-10. Lead Engineer -> Reviews each Story diff (2-Axis Review: Standards + Smells & Spec)
-11. Orchestrator -> Pushes feat/auth-otp & creates Pull Request / Merge Request to main (Dev Repo)
-12. [Gate 1.5 PR Approval] -> User reviews diff on GitHub/GitLab and approves/merges PR to main
-13. QA -> Runs automated suite & headless browser gate on main (Dev Repo `origin`)
-14. [Gate 2 Release Approval] -> User confirms release
-15. Orchestrator -> Tags SemVer v1.1.0, executes selected Deployment Option, & verifies live `/health` (with Auto-Rollback)
+6. Step 5A (Parallel Design & Architecture):
+   - UI/UX -> 4 Token Tables in chat + docs/01-design/design-spec.md + preview.html + Figma MCP
+   - Lead Engineer -> docs/02-architecture/architecture.md + adr/ + FEAT-001/tasks.md
+7. Step 5B (Sequential Seam-Bound Shift-Left QA):
+   - QA -> Reads architecture.md, tasks.md & design-spec.md -> writes FEAT-001/test-plan.md (1:1 TASK-XX <-> TC-XX + Concrete Test Vectors)
+8. [Gate 1 Hard Stop] -> Agent prints complete Blueprint and stops (Double-Lock: gate_1_user_approved).
+9. User replies: "Lanjut koding"
+10. Engineer -> Implements Story-by-Story using strict TDD on branch feat/auth-otp
+11. Lead Engineer -> Reviews each Story diff (3-Engine Review: 2-Axis + Ponytail + Caveman)
+12. Orchestrator -> Pushes feat/auth-otp & creates Pull Request / Merge Request to main (Dev Repo)
+13. [Gate 1.5 PR Approval] -> User reviews diff on GitHub/GitLab and approves/merges PR to main (Double-Lock: pr_user_approved)
+14. QA -> Runs automated suite, Playwright E2E, & Headless Chrome visual gate on main (Dev Repo `origin`)
+15. [Gate 2 Release Approval] -> User confirms release (Double-Lock: gate_2_user_approved)
+16. Orchestrator -> Tags SemVer v1.1.0, executes selected Deployment Option, & verifies live `/health` (with Auto-Rollback)
 ```
 
 ---
