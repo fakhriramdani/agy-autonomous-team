@@ -12,9 +12,22 @@ Equipped with **60+ bundled professional engineering skills**, strict ironclad r
 
 ---
 
-## 1. Team Organization & Role Boundaries
+## 1. Repository Activation & Removal Commands (`/agy-team`)
 
-Trigger any role explicitly in chat via `@orchestrator`, `@lead-pm`, `@pm`, `@uiux`, `@lead-engineer`, `@engineer`, `@qa`, or let `@orchestrator` route automatically.
+Although installed globally, `agy-autonomous-team` stays **100% DORMANT** in uninitialized repositories so it never collides with other tools or `@orchestrator` mappings. Use the dedicated `agy-team` command (in AI chat or terminal CLI) to activate or remove the workflow per repository:
+
+| Action | In-Chat Command | Terminal CLI Command | What It Does |
+| :--- | :--- | :--- | :--- |
+| **Initialize Repo** | `/agy-team init` | `agy-team init` | Creates `.agents/TEAM_STATE.json` (`"enabled": true`) in the current repo and launches **Gate 0: Discovery Interview**. |
+| **Check Status** | `/agy-team status` | `agy-team status` | Shows whether `agy-autonomous-team` is `ACTIVE` or `DORMANT` in the current repo and displays active ticket/gate state. |
+| **Remove from Repo** | `/agy-team remove` *(or `/agy-team off`)* | `agy-team remove` | Deletes `.agents/` and `.taste-skill/` (preserving `docs/`) and immediately returns the repo to standard AI assistant mode. |
+| **Full Purge** | `/agy-team remove --purge-docs` | `agy-team remove --purge-docs` | Deletes `.agents/`, `.taste-skill/`, `docs/`, and `GLOSSARY.md` from the current repo. |
+
+Once a repository is initialized via `/agy-team init`, all follow-up prompts and role tags (`@orchestrator`, `@lead-pm`, `@pm`, `@uiux`, `@lead-engineer`, `@engineer`, `@qa`) route automatically within that repository.
+
+---
+
+## 2. Team Organization & Role Boundaries
 
 | Role | Role Skill | Enforced Skills & Standards | Allowed Write Whitelist | Output Artifact |
 | :--- | :--- | :--- | :--- | :--- |

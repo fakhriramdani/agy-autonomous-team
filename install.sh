@@ -110,4 +110,56 @@ if [ -x "${AGY_BIN}" ]; then
   fi
 fi
 
-echo "[OK] Installed ${PLUGIN_NAME} to ${TARGET_DIR}"
+# Install dedicated `agy-team` CLI helper (init / remove / off / status) to ~/.local/bin/agy-team
+mkdir -p "${HOME}/.local/bin"
+cat > "${HOME}/.local/bin/agy-team" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+CMD="${1:-status}"
+case "${CMD}" in
+  init)
+    mkdir -p .agents
+    if [ ! -f .agents/TEAM_STATE.json ]; then
+      cat > .agents/TEAM_STATE.json <<JSON
+{
+  "enabled": true,
+  "ticket_id": "FEAT-001",
+  "tier": 3,
+  "stage": "GATE_0_DISCOVERY",
+  "gate_0_user_approved": false,
+  "gate_1_user_approved": false,
+  "pr_user_approved": false,
+  "gate_2_user_approved": false,
+  "initialized_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+}
+JSON
+    fi
+    touch .agents/LESSONS_LEARNED.md .agents/METRICS.log
+    echo "[OK] AGY Autonomous Team initialized in $(pwd) (.agents/TEAM_STATE.json created)."
+    ;;
+  remove|off|disable)
+    rm -rf .agents .taste-skill
+    if [ "${2:-}" = "--purge-docs" ]; then
+      rm -rf docs GLOSSARY.md
+      echo "[OK] AGY Autonomous Team + docs/ completely purged from $(pwd)."
+    else
+      echo "[OK] AGY Autonomous Team removed from $(pwd) (.agents/ deleted; docs/ preserved)."
+    fi
+    ;;
+  status)
+    if [ -f .agents/TEAM_STATE.json ]; then
+      echo "[ACTIVE] AGY Autonomous Team is ENABLED in $(pwd):"
+      cat .agents/TEAM_STATE.json
+    else
+      echo "[DORMANT] AGY Autonomous Team is NOT initialized in $(pwd). Run 'agy-team init' or type '/agy-team init' in chat to enable."
+    fi
+    ;;
+  *)
+    echo "Usage: agy-team {init|remove|off|status} [--purge-docs]"
+    exit 1
+    ;;
+esac
+EOF
+chmod +x "${HOME}/.local/bin/agy-team"
+
+echo "[OK] Installed ${PLUGIN_NAME} to ${TARGET_DIR} and CLI 'agy-team' to ${HOME}/.local/bin/agy-team"
