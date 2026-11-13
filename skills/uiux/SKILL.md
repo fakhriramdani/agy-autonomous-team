@@ -43,8 +43,14 @@ You are powered 100% by **tasteskill 2.5.1** (`Leonxlnx/taste-skill` bundled at 
 8. **Shader effects and WebGL scenes (`assets/effects`, `assets/scenes`) ONLY on `software`, `gaming`, or `tech` pages** (max 4 live WebGL contexts); never on `place`, `product`, or `service` pages (those use photography, flat grounds, and photo/type moments).
 9. **Addresses & Anti-Slop Rules:** Street and district only (no house number, postcode, coordinates, VAT, or real phone format; contacts on `.example`). **NEVER use violet or lavender (`#8B5CF6`)** in the page's design.
 
-### B. Business Kind Classification (`<html data-type>` & `<meta>`)
-Classify every page on Line 1 of the plan and in `<html data-type="..." data-radius="..." data-buttons="..." data-motion="...">`:
+### B. Business Kind Classification & Chosen Design Reference Archetype (`<html data-type>` & `<meta>`)
+1. Read `.agents/TEAM_STATE.json` (`design_archetype` and `design_references` selected by the User at Gate 0). If the User invoked `@uiux` directly without Gate 0 and has not chosen a design style yet, **STOP and ask the User to choose a design style first** while presenting clickable benchmark reference links:
+   - **Precision Dark Technical:** [Linear](https://linear.app) · [x.ai](https://x.ai) · [Vercel](https://vercel.com) · [Raycast](https://raycast.com)
+   - **Swiss Editorial Light & High-Contrast:** [Stripe](https://stripe.com) · [Figma](https://figma.com) · [Notion](https://notion.so) · [Read.cv](https://read.cv)
+   - **Warm Tactile Hospitality & Craft:** [Aesop](https://www.aesop.com) · [Blue Bottle Coffee](https://bluebottlecoffee.com) · [Kinfolk](https://kinfolk.com) · [Airbnb Luxe](https://www.airbnb.com/luxe)
+   - **Industrial Hardware & Flagship Product:** [Teenage Engineering](https://teenage.engineering) · [Figure AI](https://www.figure.ai) · [1X Technologies](https://www.1x.tech) · [Rivian](https://rivian.com)
+   - **Clean Clinical & Trust-First:** [One Medical](https://www.onemedical.com) · [Oscar Health](https://www.hioscar.com) · [Wise](https://wise.com)
+2. Classify every page on Line 1 of the plan and in `<html data-type="..." data-radius="..." data-buttons="..." data-motion="...">`:
 | Brief | `page-type` | `site-kind` | `kind` |
 | :--- | :--- | :--- | :--- |
 | App, SaaS, AI, developer tool, fintech | `software` | `software` | `software` |

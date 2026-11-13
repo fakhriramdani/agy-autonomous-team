@@ -75,19 +75,30 @@ Sebelum menjalankan role apa pun, Orchestrator **WAJIB** mengevaluasi apakah per
 - **Tier 3 (New Feature / Feature Addition / PRD Business Change / Epic):**
   Wajib melalui siklus lengkap di bawah ini (menyimpan spesifikasi fitur baru di `docs/03-features/FEAT-XXX-<slug>/` dan meng-update *Living Docs* `docs/00-product/`, `docs/01-design/`, `docs/02-architecture/` secara **incremental/append tanpa menimpa fitur lama**).
 
-### 2. Gate 0: Discovery & Design-Tree Frontier Interview (`grilling` + `ask_question`)
-Before spawning `role-lead-pm` on Tier 3 (or underspecified requests), verify all 5 core dimensions:
-1. **Target Platform & Business Kind** (`software`, `gaming`, `tech`, `product`, `service`, `place` per `taste-skill 2.5.1`).
-2. **Core MVP Scope & Primary Transaction Action** (must-have workflows vs out-of-scope, e.g., "Start a free trial", "Book a room").
-3. **Tech Stack, Architecture Seams, Data Storage & Deployment Mode:**
-   - Framework, database, and **Deployment Option**:
-     - **Opsi A (Skema 2 Repository — `origin` Dev CI + `production` Prod CD)** *(Recommended)*
-     - **Opsi B (GitHub Actions CI/CD -> SSH / Docker Compose ke VPS)**
-     - **Opsi C (Direct VPS / Local Server via Docker Compose / PM2 / Systemd)**
-     - **Opsi D (Managed PaaS — Vercel / Railway / Coolify / Render / Fly.io)**
-4. **Auth, Security & External Integrations** (login method, payment, 3rd-party APIs).
-5. **Visual Vibe, Brand Palette & Figma Target** (dark/light mode, existing Figma URL or create new file).
-Call `ask_question` with `(Recommended)` first options to settle the frontier before spawning downstream roles.
+### 2. Gate 0: Discovery, Design Style Selection & Live Reference Links (`grilling` + `ask_question`)
+Before spawning `role-lead-pm` on Tier 3 (or `@uiux` on Tier 2 when no design style is locked), you **MUST**:
+1. **Print the Curated Design Direction & Live Reference Gallery Table directly in chat** (so the User can click the live URLs to preview real-world design benchmarks before choosing):
+
+| Pilihan Gaya Desain (`taste-skill 2.5.1`) | Karakteristik Visual & Token Palette | Cocok Untuk Kategori Bisnis | 🔗 Link Referensi Contoh Desain (Klik untuk Lihat) |
+| :--- | :--- | :--- | :--- |
+| **1. Precision Dark Technical** (`dark-obsidian` / `carbon-emerald`) | Surface karbon gelap (`#0B0D10`), border `1px` tajam, live `app-frame` UI, monospace telemetry, subtle WebGL/shader | SaaS, AI Platform, Developer Tools, Cybersecurity, Fintech/Crypto (`software` / `tech`) | [Linear](https://linear.app) · [x.ai](https://x.ai) · [Vercel](https://vercel.com) · [Raycast](https://raycast.com) |
+| **2. Swiss Editorial Light & High-Contrast** (`white-link-blue` / `paper-grey-brass`) | Kertas putih bersih (`#FFFFFF`) / warm newsprint (`#E8E8E3`), tipografi serif/grotesk tajam, grid presisi, 1 aksen kuat (`#1A4BE0`) | Enterprise SaaS, Fintech, Productivity, Law/Consulting, Portal Riset (`software` / `service`) | [Stripe](https://stripe.com) · [Figma](https://figma.com) · [Notion](https://notion.so) · [Read.cv](https://read.cv) |
+| **3. Warm Tactile Hospitality & Craft** (`rose-grey-green` / `warm-ivory`) | Fotografi nyata ukuran penuh (*full-bleed*), ground *warm stone/ivory* (`#EBE5E3`), tipografi humanis, zero efek WebGL | Cafe, Bakery, Restoran, Hotel/Villa, Brand Retail/Fashion, Studio Kreatif (`place` / `product`) | [Aesop](https://www.aesop.com) · [Blue Bottle](https://bluebottlecoffee.com) · [Kinfolk](https://kinfolk.com) · [Airbnb Luxe](https://www.airbnb.com/luxe) |
+| **4. Industrial Hardware & Flagship Product** (`cool-white-slate` / `titanium`) | Produk tampil *anchor-scale* besar & utuh, *swatch* warna interaktif mengganti foto real-time, kontras ruang lega | Hardware, Otomotif/EV, IoT, Gadget, E-Commerce Produk Flagship (`tech` / `product`) | [Teenage Engineering](https://teenage.engineering) · [Figure AI](https://www.figure.ai) · [1X Tech](https://www.1x.tech) · [Rivian](https://rivian.com) |
+| **5. Clean Clinical & Trust-First** (`cool-white-slate` / `sage-alabaster`) | Cool white (`#F7F9FA`) & slate teal (`#0D7480`), kontras WCAG AAA, form/booking sangat tenang, jelas, & kredibel | Healthcare, Klinik/RS, EdTech, HRIS, Asuransi, Pemerintahan (`service` / `software`) | [One Medical](https://www.onemedical.com) · [Oscar Health](https://www.hioscar.com) · [Wise](https://wise.com) |
+| **6. Custom Reference / Figma Sendiri** | Mengikuti URL website inspirasi, file Figma, atau panduan brand yang diberikan langsung oleh User | Semua kategori | *(User melampirkan link referensi / URL Figma sendiri)* |
+
+2. **Verify all 5 Core Dimensions via `ask_question`** (with `(Recommended)` on the first option matching the business kind):
+   1. **Target Platform & Business Kind** (`software`, `gaming`, `tech`, `product`, `service`, `place` per `taste-skill 2.5.1`).
+   2. **Core MVP Scope & Primary Transaction Action** (must-have workflows vs out-of-scope, e.g., "Start a free trial", "Book a room").
+   3. **Design Direction & Reference Style** (pilih salah satu dari 6 Archetype Desain di tabel atas atau lampirkan link referensi/Figma sendiri).
+   4. **Tech Stack, Architecture Seams, Data Storage & Deployment Mode:**
+      - **Opsi A (Skema 2 Repository — `origin` Dev CI + `production` Prod CD)** *(Recommended)*
+      - **Opsi B (GitHub Actions CI/CD -> SSH / Docker Compose ke VPS)**
+      - **Opsi C (Direct VPS / Local Server via Docker Compose / PM2 / Systemd)**
+      - **Opsi D (Managed PaaS — Vercel / Railway / Coolify / Render / Fly.io)**
+   5. **Auth, Security & External Integrations** (login method, payment, 3rd-party APIs).
+Call `ask_question` with `(Recommended)` first options and **STOP (`END TURN`)** to wait for the User's choice before spawning downstream roles. Write the chosen `design_archetype` and `design_references` into `.agents/TEAM_STATE.json`.
 
 ### 3. Model Routing, Structured Folder Layout & State Persistence (`.agents/TEAM_STATE.json`)
 When spawning roles via `invoke_subagent`, pass the allowed `Model` enum (`"inherit"`, `"flash"`, `"flash_lite"`, `"pro"`):
@@ -108,6 +119,8 @@ Update `.agents/TEAM_STATE.json` at every transition (tracking both Global Livin
   "gate_1_user_approved": false,
   "pr_user_approved": false,
   "gate_2_user_approved": false,
+  "design_archetype": "Precision Dark Technical (dark-obsidian)",
+  "design_references": ["https://linear.app", "https://vercel.com"],
   "deployment_mode": "dual-repo-cicd",
   "branch": "feat/feat-001-auth-otp",
   "completed_roles": ["lead-pm", "pm", "uiux", "lead-engineer", "qa-plan"],
