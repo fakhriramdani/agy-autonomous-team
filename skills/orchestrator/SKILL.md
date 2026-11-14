@@ -177,8 +177,8 @@ Once `STATUS: PRD_APPROVED`, execute in two strict sub-steps so `@qa` has 100% v
 - If the User requests changes to UI/UX or Architecture, re-spawn ONLY the affected role (`role-uiux` or `role-lead-engineer`), update `test-plan.md` if seams changed, and present Gate 1 again.
 - **NEVER spawn `role-engineer`** until the User explicitly approves Gate 1.
 
-### 7. Phase 2 Execution: Vertical-Slice TDD & 2-Axis Story Review
-- Spawn `role-engineer` on branch `feat/<ticket-slug>` to execute `docs/tasks.md` Story by Story using `tdd` (Red-Green vertical slices at agreed seams), `ponytail` (YAGNI + `shortcut:` comments), and `caveman-commit` (atomic Conventional Commits per `TASK-XX`).
+### 7. Phase 2 Execution: Vertical-Slice TDD, SOLID Clean Code & 3-Engine Story Review
+- Spawn `role-engineer` on branch `feat/<ticket-slug>` to execute `docs/03-features/<FEAT-ID>-<slug>/tasks.md` Story by Story using `tdd` (Red-Green-Refactor vertical slices at agreed seams with Concrete Test Vectors from `test-plan.md`), SOLID Clean Code architecture, `src/lib/logger.ts` structured logging, `taste-skill 2.5.1` UI fidelity (zero stubs, zero placeholders), and `caveman-commit`.
 - **Per-Story Review Loop:**
   - After each Story completes, spawn `role-lead-engineer` (Phase 2) to run 2-axis `code-review` (Standards + 12 Fowler Smells & Spec) + `ponytail-review` + `caveman-review`.
   - If `CHANGES_REQUESTED` -> Engineer fixes before moving to the next Story.

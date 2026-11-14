@@ -3,19 +3,17 @@ name: to-spec
 description: Synthesize requirements into Problem, Solution, User Stories, Implementation & Testing Seams.
 ---
 
-This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.
+# To Spec (Production-Grade PRD Synthesis)
 
-The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
+This skill takes the current conversation context, `GLOSSARY.md`, and `scope.md` and synthesizes a complete, production-grade Product Requirements Document (`docs/03-features/<FEAT-ID>-<slug>/prd.md` and `docs/00-product/prd.md`).
 
 ## Process
 
-1. Explore the repo to understand the current state of the codebase, if you haven't already. Use the project's domain glossary vocabulary throughout the spec, and respect any ADRs in the area you're touching.
+1. Explore the repo to understand the current state of the codebase. Use the project's `GLOSSARY.md` domain vocabulary throughout the spec, and respect any ADRs in `docs/02-architecture/adr/`.
 
-2. Sketch out the seams at which you're going to test the feature. Existing seams should be preferred to new ones. Use the highest seam possible. If new seams are needed, propose them at the highest point you can. The fewer seams across the codebase, the better - the ideal number is one.
+2. Identify the public seams at which the feature will be tested (`docs/02-architecture/architecture.md`). Existing seams should be preferred to new ones. Use the highest public seam possible.
 
-Check with the user that these seams match their expectations.
-
-3. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.
+3. Write the specification directly to `docs/03-features/<FEAT-ID>-<slug>/prd.md` (and append index to `docs/00-product/prd.md`) following the complete industry-grade PRD template in `skills/pm/SKILL.md` (including quantifiable Gherkin Acceptance Criteria, Functional Requirements Matrix, NFRs, Data Requirements, Zod API Contract Summary, and UI/UX Cross-Reference):
 
 <spec-template>
 
@@ -27,48 +25,28 @@ The problem that the user is facing, from the user's perspective.
 
 The solution to the problem, from the user's perspective.
 
-## User Stories
+## User Stories & Gherkin Acceptance Criteria
 
-A LONG, numbered list of user stories. Each user story should be in the format of:
+A comprehensive, numbered list of user stories covering all aspects of the feature (`US-01`, `US-02`, ...), each with quantifiable Gherkin scenarios (Happy Path, Validation/Negative Flow, and Edge Case/Concurrency):
 
-1. As an <actor>, I want a <feature>, so that <benefit>
+1. **US-01:** As a `<Canonical Actor from GLOSSARY.md>`, I want `<feature/capability>`, so that `<measurable benefit>`.
+   - **Scenario 1.1 (Happy Path):** Given `<precondition>`, When `<action>`, Then `<quantifiable outcome>`.
+   - **Scenario 1.2 (Validation / Negative Flow):** Given `<invalid input>`, When `<action>`, Then `<exact error message & zero state mutation>`.
+   - **Scenario 1.3 (Edge Case / Concurrency):** Given `<duplicate click / timeout / unauthorized>`, When `<action>`, Then `<idempotent handling / retry / 401>`.
 
-<user-story-example>
-1. As a mobile bank customer, I want to see balance on my accounts, so that I can make better informed decisions about my spending
-</user-story-example>
+## Implementation & Seam Decisions
 
-This list of user stories should be extremely extensive and cover all aspects of the feature.
-
-## Implementation Decisions
-
-A list of implementation decisions that were made. This can include:
-
-- The modules that will be built/modified
-- The interfaces of those modules that will be modified
-- Technical clarifications from the developer
-- Architectural decisions
-- Schema changes
-- API contracts
-- Specific interactions
-
-Do NOT include specific file paths or code snippets. They may end up being outdated very quickly.
-
-Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it within the relevant decision and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.
+- Modules and public interfaces to be built or modified
+- Architectural decisions, DB schema requirements, and Zod API contracts
+- Specific UI/UX interactions (`docs/01-design/design-spec.md`)
 
 ## Testing Decisions
 
-A list of testing decisions that were made. Include:
+- Public seams under test (verify external behavior through public interfaces, never private implementation details)
+- Concrete boundary and edge-case expectations for `test-plan.md`
 
-- A description of what makes a good test (only test external behavior, not implementation details)
-- Which modules will be tested
-- Prior art for the tests (i.e. similar types of tests in the codebase)
+## Out of Scope (`Won't-Have`)
 
-## Out of Scope
-
-A description of the things that are out of scope for this spec.
-
-## Further Notes
-
-Any further notes about the feature.
+Explicit list of excluded features from `scope.md`.
 
 </spec-template>
