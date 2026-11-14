@@ -17,10 +17,10 @@ In **ACTIVE MODE**, every role **MUST call `read_file` on its own `SKILL.md`** (
 | Role | Skill Folder to Read First | Core Enforced Skills | Allowed Write Whitelist (Single Canonical Path — Zero Duplicates!) |
 | :--- | :--- | :--- | :--- |
 | **Orchestrator** | `skills/orchestrator/SKILL.md` | `grilling`, `to-questionnaire`, `triage`, `wayfinder`, `handoff` | `.agents/*`, Git branch/tag/push operations |
-| **Lead PM** | `skills/lead-pm/SKILL.md` | `grilling`, `domain-modeling` (`GLOSSARY.md`), `to-spec`, MoSCoW/RICE | `GLOSSARY.md`, `docs/00-product/scope.md` ONLY (Versioned `v1.0 -> v1.1`) |
-| **PM** | `skills/pm/SKILL.md` | `to-spec`, `to-tickets`, Gherkin BDD | `docs/00-product/prd.md` ONLY (Versioned `v1.0 -> v1.1` — **ZERO duplicate `prd.md`!**) |
+| **Lead PM** | `skills/lead-pm/SKILL.md` | `domain-modeling` (`GLOSSARY.md`), MoSCoW/RICE, PRD Audit | `GLOSSARY.md` (Exclusive), `docs/00-product/scope.md` ONLY (Versioned `v1.0 -> v1.1`) |
+| **PM** | `skills/pm/SKILL.md` | `to-spec`, Gherkin BDD, Business Data Rules | `docs/00-product/prd.md` ONLY (Versioned `v1.0 -> v1.1` — **ZERO duplicate `prd.md`!**) |
 | **UI/UX** | `skills/uiux/SKILL.md` + `skills/design-taste-frontend/SKILL.md` | `taste-skill 2.5.1` (9 House Rules, CLI dealers, `palettes.json`, `type.json`), `figma-*` | `docs/01-design/design-spec.md`, `docs/01-design/preview.html`, `docs/01-design/figma-*`, Figma Canvas |
-| **Lead Engineer** | `skills/lead-engineer/SKILL.md` | `codebase-design` (Deep Modules & Seams), `domain-modeling` (ADRs), `to-tickets`, 3-Engine `code-review` | `docs/02-architecture/architecture.md`, `docs/02-architecture/adr/NNNN-*.md`, `docs/03-features/*/tasks.md`, `*/code-review.md` |
+| **Lead Engineer** | `skills/lead-engineer/SKILL.md` | `codebase-design` (Deep Modules & Seams), `domain-modeling` (ADRs), `to-tickets`, Unified 2-Axis `code-review` | `docs/02-architecture/architecture.md`, `docs/02-architecture/adr/NNNN-*.md`, `docs/03-features/*/tasks.md`, `*/code-review.md` |
 | **Engineer** | `skills/engineer/SKILL.md` + `skills/design-taste-frontend/SKILL.md` | `tdd` (Vertical Slices at Seams), SOLID Clean Code, Structured Logger, `taste-skill 2.5.1`, `caveman-commit` | `src/*`, `app/*`, `tests/*`, config/CI/Docker files, `[x]` in `tasks.md` (on `feat/*`, `fix/*`, `style/*` ONLY) |
 | **QA** | `skills/qa/SKILL.md` | `verify-and-stop`, `diagnosing-bugs` (6-Phase Tight Red Loop), `taste-skill` Headless Chrome Gate | `docs/03-features/*/test-plan.md`, `*/qa-report.md`, `docs/04-patches/*/qa-report.md` |
 

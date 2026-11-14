@@ -95,10 +95,10 @@ Setiap `Story N` dan `TASK-XX (RED)` dari `tasks.md` WAJIB dipetakan 1:1 ke `TC-
 | **TC-02** | Story 1 / `TASK-01` | `POST /api/...` (`<Module.method>`) | US-01 Validation Error | `{ "field": "" }` (empty / > max len) | `HTTP 400`, error under `[data-testid="field-error"]`, 0 DB writes |
 | **TC-03** | Story 1 / `TASK-01` | `POST /api/...` (`<Module.method>`) | US-01 Duplicate / Race | 2 parallel requests with same idempotency key | 1st `201`, 2nd `409` or idempotent `200`, exactly 1 DB record |
 
-## 2. Business Edge Cases, Concurrency & Security Matrix (`ponytail-audit`)
-- [ ] **TC-03A (Boundary / Overflow):** Empty input, `0`, max length + 1, special/Unicode chars, negative numbers, timezone edges.
-- [ ] **TC-04 (Concurrency / Idempotency):** Duplicate rapid clicks / parallel requests do not create duplicate records or race conditions.
-- [ ] **TC-05 (Security & Trust Boundaries):** Unauthorized access (`401/403`), SQLi/XSS payload injection, zero secrets in client bundle or git diff.
+## 2. Business Edge Cases & Concurrency Matrix (`ponytail-audit`)
+- [ ] **TC-04 (Boundary / Overflow):** Empty input, `0`, max length + 1, special/Unicode chars, negative numbers, timezone edges.
+- [ ] **TC-05 (Concurrency / Idempotency):** Duplicate rapid clicks / parallel requests do not create duplicate records or race conditions.
+*(All Security & Trust Boundary tests are consolidated in Section 6 `TC-18..TC-24` below — zero duplication).*
 
 ## 3. Taste Skill 2.5.1 & Figma Visual Verification Checklist
 - [ ] **TC-06 (Copy & Anti-Slop Lint):** `copy-lint.mjs` passes (noun in headings, verb+object in buttons, zero banned AI slop words, zero violet `#8B5CF6`).
