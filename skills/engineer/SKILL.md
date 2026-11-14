@@ -35,17 +35,17 @@ Disciplined, production-grade senior software craftsman powered 100% by:
 ## Mandatory Bundled Skills Execution
 
 ### 0. Mandatory Document Reading Checklist (WAJIB SEBELUM MENULIS KODE)
-Sebelum menulis 1 baris kode pun, Engineer **WAJIB** memeriksa `.agents/TEAM_STATE.json` (`artifacts`) dan membaca dokumen berikut secara LENGKAP:
-| # | Document Path (Canonical `docs/0X-*` or Fallback `docs/*`) | What to Extract | Cross-Reference |
+Sebelum menulis 1 baris kode pun, Engineer **WAJIB** membaca dokumen kanonik berikut secara LENGKAP:
+| # | Single Canonical Document Path | What to Extract | Cross-Reference |
 |:--|:---|:---|:---|
 | 1 | `GLOSSARY.md` | Canonical domain terms — use EXACT terms in code (variable names, function names, comments) | All code |
-| 2 | `docs/03-features/<FEAT-ID>-<slug>/prd.md` *(or `docs/00-product/prd.md`)* | Functional requirements matrix (FR-01..FR-XX), NFRs, API contracts, data validation rules, Gherkin ACs | Tests + implementation |
-| 3 | `docs/01-design/design-spec.md` *(or `docs/design-spec.md`)* | CSS token values (`:root` variables), typography scale, component anatomy & 7 states, responsive breakpoints | Frontend code |
-| 4 | `docs/01-design/preview.html` *(or `docs/preview.html`)* | Interactive visual reference — match 100% of layout, tokens, and micro-interactions at 1440, 768, 390px | Frontend code |
-| 5 | `docs/02-architecture/architecture.md` *(or `docs/architecture.md`)* | Deep module interfaces, public seams (= test surfaces), DB schema, API contracts (Zod schemas), `AppError` & `src/lib/logger.ts` strategy | Backend + tests |
-| 6 | `docs/03-features/<FEAT-ID>-<slug>/tasks.md` *(or `docs/tasks.md`)* | Current Story, TASK-XX sequence, `Blocked by:` edges, estimated files to touch, Definition of Done checklist | Execution order |
-| 7 | `docs/02-architecture/adr/*.md` *(or `docs/adr/*.md`)* | Architectural decisions — follow chosen patterns, do NOT contradict ADR rationale | Implementation |
-| 8 | `docs/03-features/<FEAT-ID>-<slug>/test-plan.md` *(or `docs/test-plan.md`)* | Test case IDs (`TC-01..TC-24`), Concrete Test Vectors, public seams under test | Test writing |
+| 2 | `docs/00-product/prd.md` | Versioned PRD: Functional requirements matrix (FR-01..FR-XX), NFRs, API contracts, data validation rules, Gherkin ACs | Tests + implementation |
+| 3 | `docs/01-design/design-spec.md` | CSS token values (`:root` variables), typography scale, component anatomy & 7 states, responsive breakpoints | Frontend code |
+| 4 | `docs/01-design/preview.html` | Interactive visual reference — match 100% of layout, tokens, and micro-interactions at 1440, 768, 390px | Frontend code |
+| 5 | `docs/02-architecture/architecture.md` | Deep module interfaces, public seams (= test surfaces), DB schema, API contracts (Zod schemas), `AppError` & `src/lib/logger.ts` strategy | Backend + tests |
+| 6 | `docs/03-features/<FEAT-ID>-<slug>/tasks.md` | Current Story, TASK-XX sequence, `Blocked by:` edges, estimated files to touch, Definition of Done checklist | Execution order |
+| 7 | `docs/02-architecture/adr/*.md` | Architectural decisions — follow chosen patterns, do NOT contradict ADR rationale | Implementation |
+| 8 | `docs/03-features/<FEAT-ID>-<slug>/test-plan.md` | Test case IDs (`TC-01..TC-24`), Concrete Test Vectors, public seams under test | Test writing |
 | 9 | `.agents/LESSONS_LEARNED.md` | Past defect patterns — do NOT repeat known mistakes | All code |
 
 ### 1. Pre-Coding Preparation (`domain-modeling`)

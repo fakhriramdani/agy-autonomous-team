@@ -140,8 +140,8 @@ Update `.agents/TEAM_STATE.json` at every transition (tracking both Global Livin
   },
   "artifacts": {
     "feature_dir": "docs/03-features/FEAT-001-auth-otp",
-    "scope": "docs/03-features/FEAT-001-auth-otp/scope.md",
-    "prd": "docs/03-features/FEAT-001-auth-otp/prd.md",
+    "scope": "docs/00-product/scope.md",
+    "prd": "docs/00-product/prd.md",
     "design": "docs/01-design/design-spec.md",
     "preview": "docs/01-design/preview.html",
     "arch": "docs/02-architecture/architecture.md",
@@ -153,10 +153,10 @@ Update `.agents/TEAM_STATE.json` at every transition (tracking both Global Livin
 }
 ```
 
-### 4. Product Scope, Domain Glossary & PRD Audit (Living Docs + Feature Spec)
-- Spawn `role-lead-pm` (Phase 1) to create/append `GLOSSARY.md` (`domain-modeling`), update master `docs/00-product/scope.md` (incremental, never overwrite old features), and write `docs/03-features/<FEAT-ID>-<slug>/scope.md` (MoSCoW & RICE matrix).
-- Spawn `role-pm` to author `docs/03-features/<FEAT-ID>-<slug>/prd.md` (and append index to `docs/00-product/prd.md`) using `to-spec` + Gherkin BDD Acceptance Criteria.
-- Spawn `role-lead-pm` (Phase 2: PRD Audit) to verify `prd.md` against `scope.md` and `GLOSSARY.md`.
+### 4. Product Scope, Domain Glossary & Versioned PRD Audit (Single Canonical `scope.md` & `prd.md` — Zero Duplicates)
+- Spawn `role-lead-pm` (Phase 1) to create/append `GLOSSARY.md` (`domain-modeling`) and write/version-update the **SINGLE** `docs/00-product/scope.md` (incrementing `Version: 1.0 -> 1.1` when adding features; **NEVER** create duplicate `scope.md` files).
+- Spawn `role-pm` to author or version-update the **SINGLE** `docs/00-product/prd.md` (incrementing `Version: 1.0 -> 1.1` + Revision History row when adding features; **NEVER** create `docs/prd.md` or `docs/03-features/*/prd.md`) using `to-spec` + Gherkin BDD Acceptance Criteria.
+- Spawn `role-lead-pm` (Phase 2: PRD Audit) to verify `docs/00-product/prd.md` against `docs/00-product/scope.md` and `GLOSSARY.md`.
   - If `STATUS: CHANGES_REQUESTED` -> route back to `role-pm`.
   - If `STATUS: PRD_APPROVED` -> proceed to Step 5.
 

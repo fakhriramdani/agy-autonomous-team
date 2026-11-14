@@ -5,7 +5,7 @@ description: Synthesize requirements into Problem, Solution, User Stories, Imple
 
 # To Spec (Production-Grade PRD Synthesis)
 
-This skill takes the current conversation context, `GLOSSARY.md`, and `scope.md` and synthesizes a complete, production-grade Product Requirements Document (`docs/03-features/<FEAT-ID>-<slug>/prd.md` and `docs/00-product/prd.md`).
+This skill takes the current conversation context, `GLOSSARY.md`, and `docs/00-product/scope.md` and synthesizes or version-updates the single canonical Product Requirements Document at **`docs/00-product/prd.md`** (never create duplicate `prd.md` files in other folders).
 
 ## Process
 
@@ -13,7 +13,7 @@ This skill takes the current conversation context, `GLOSSARY.md`, and `scope.md`
 
 2. Identify the public seams at which the feature will be tested (`docs/02-architecture/architecture.md`). Existing seams should be preferred to new ones. Use the highest public seam possible.
 
-3. Write the specification directly to `docs/03-features/<FEAT-ID>-<slug>/prd.md` (and append index to `docs/00-product/prd.md`) following the complete industry-grade PRD template in `skills/pm/SKILL.md` (including quantifiable Gherkin Acceptance Criteria, Functional Requirements Matrix, NFRs, Data Requirements, Zod API Contract Summary, and UI/UX Cross-Reference):
+3. Write or version-update the specification directly in **`docs/00-product/prd.md`** (incrementing `Version: 1.0 -> 1.1` and updating `## 16. Revision History` when adding new features) following the complete industry-grade PRD template in `skills/pm/SKILL.md` (including quantifiable Gherkin Acceptance Criteria, Functional Requirements Matrix, NFRs, Data Requirements, Zod API Contract Summary, and UI/UX Cross-Reference):
 
 <spec-template>
 
