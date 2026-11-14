@@ -100,14 +100,17 @@ Before spawning `role-lead-pm` on Tier 3 (or `@uiux` on Tier 2 when no design st
    5. **Auth, Security & External Integrations** (login method, payment, 3rd-party APIs).
 Call `ask_question` with `(Recommended)` first options and **STOP (`END TURN`)** to wait for the User's choice before spawning downstream roles. Write the chosen `design_archetype` and `design_references` into `.agents/TEAM_STATE.json`.
 
-### 3. Model Routing, Structured Folder Layout & State Persistence (`.agents/TEAM_STATE.json`)
-When spawning roles via `invoke_subagent`, pass the allowed `Model` enum (`"inherit"`, `"flash"`, `"flash_lite"`, `"pro"`):
-- `role-lead-pm`: `Model: "inherit"`
-- `role-pm`: `Model: "flash"`
-- `role-uiux`: `Model: "inherit"`
-- `role-lead-engineer`: `Model: "inherit"`
-- `role-engineer`: `Model: "inherit"`
-- `role-qa`: `Model: "flash"`
+### 3. Subagent Skill-Loading Contract, Model Routing & State Persistence (`.agents/TEAM_STATE.json`)
+1. **Always Pass `Model: "inherit"` on All Roles:**
+   When spawning any role via `invoke_subagent(TypeName: "self", Model: "inherit", ...)`, **ALWAYS use `Model: "inherit"`** across all 6 specialist roles (`lead-pm`, `pm`, `uiux`, `lead-engineer`, `engineer`, `qa`) so no role is ever downgraded to a weaker/smaller model.
+2. **Mandatory First-Line `SKILL.md` Load Instruction in Every Subagent Prompt:**
+   Because each spawned subagent starts with a fresh context window, you **MUST** include this exact block at the top of every `invoke_subagent` `Prompt`:
+   ```text
+   MANDATORY STEP 1 (DO NOT SKIP):
+   1. Call `read_file` on `~/.gemini/config/plugins/autonomous-team-kit/skills/<role-folder>/SKILL.md` (and `skills/design-taste-frontend/SKILL.md` if you are UI/UX or Engineer) as your VERY FIRST tool call before doing any work.
+   2. This repository is in ACTIVE MODE (`.agents/TEAM_STATE.json` is enabled). Do NOT enter Dormant Mode.
+   3. Deliver 100% complete, production-grade work with ZERO placeholders, ZERO `// TODO` stubs, and ZERO lazy shortcuts.
+   ```
 
 Update `.agents/TEAM_STATE.json` at every transition (tracking both Global Living Docs and the active Feature/Patch folder):
 ```json

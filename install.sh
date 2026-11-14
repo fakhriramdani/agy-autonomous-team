@@ -29,7 +29,19 @@ update_global_md() {
   } >> "${target_file}"
 }
 
-update_global_md "${HOME}/.gemini/GEMINI.md"
+# Clean any duplicate block in ~/.gemini/GEMINI.md so Antigravity does not double-load AGENTS.md and hit the rules token budget:
+if [ -f "${HOME}/.gemini/GEMINI.md" ]; then
+  if head -n 1 "${HOME}/.gemini/GEMINI.md" | grep -q "^# Autonomous Team Kit"; then
+    rm -f "${HOME}/.gemini/GEMINI.md"
+  else
+    sed -i '/<!-- BEGIN AGY-AUTONOMOUS-TEAM -->/,/<!-- END AGY-AUTONOMOUS-TEAM -->/d' "${HOME}/.gemini/GEMINI.md"
+    if [ ! -s "${HOME}/.gemini/GEMINI.md" ]; then
+      rm -f "${HOME}/.gemini/GEMINI.md"
+    fi
+  fi
+fi
+
+# Safe Non-Destructive Global Registration for Claude Code (~/.claude/CLAUDE.md):
 update_global_md "${HOME}/.claude/CLAUDE.md"
 
 # Avoid duplicate skill loading in Antigravity: remove duplicate standalone skill copies from ~/.gemini/config/skills

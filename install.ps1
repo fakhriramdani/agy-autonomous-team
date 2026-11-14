@@ -34,7 +34,19 @@ function Update-GlobalMd {
 }
 
 $SourceRule = Join-Path $ScriptDir "rules\AGENTS.md"
-Update-GlobalMd -FilePath (Join-Path $HOME ".gemini\GEMINI.md") -SourceAgentsMd $SourceRule
+# Clean duplicate block from ~/.gemini/GEMINI.md so Antigravity does not double-load AGENTS.md and exceed the rules token budget
+$GeminiMd = Join-Path $HOME ".gemini\GEMINI.md"
+if (Test-Path $GeminiMd) {
+    $ExistingGemini = Get-Content -Raw $GeminiMd
+    if ($null -ne $ExistingGemini) {
+        $CleanedGemini = [regex]::Replace($ExistingGemini, "(?s)<!-- BEGIN AGY-AUTONOMOUS-TEAM -->.*?<!-- END AGY-AUTONOMOUS-TEAM -->\r?\n?", "").Trim()
+        if ($CleanedGemini -eq "" -or $CleanedGemini.StartsWith("# Autonomous Team Kit")) {
+            Remove-Item -Force $GeminiMd
+        } else {
+            Set-Content -Path $GeminiMd -Value $CleanedGemini -Encoding UTF8
+        }
+    }
+}
 Update-GlobalMd -FilePath (Join-Path $HOME ".claude\CLAUDE.md") -SourceAgentsMd $SourceRule
 
 # Install dedicated `agy-team` PowerShell/CMD helper to ~/.local/bin/agy-team.cmd
