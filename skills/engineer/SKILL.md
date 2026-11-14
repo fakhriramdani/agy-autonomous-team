@@ -35,23 +35,23 @@ Disciplined, production-grade senior software craftsman powered 100% by:
 ## Mandatory Bundled Skills Execution
 
 ### 0. Mandatory Document Reading Checklist (WAJIB SEBELUM MENULIS KODE)
-Sebelum menulis 1 baris kode pun, Engineer **WAJIB** membaca dan memahami dokumen berikut secara LENGKAP:
-| # | Document | What to Extract | Cross-Reference |
+Sebelum menulis 1 baris kode pun, Engineer **WAJIB** memeriksa `.agents/TEAM_STATE.json` (`artifacts`) dan membaca dokumen berikut secara LENGKAP:
+| # | Document Path (Canonical `docs/0X-*` or Fallback `docs/*`) | What to Extract | Cross-Reference |
 |:--|:---|:---|:---|
 | 1 | `GLOSSARY.md` | Canonical domain terms — use EXACT terms in code (variable names, function names, comments) | All code |
-| 2 | `docs/prd.md` | Functional requirements matrix (FR-01..FR-XX), NFRs, API contracts, data validation rules, Gherkin ACs | Tests + implementation |
-| 3 | `docs/design-spec.md` | CSS token values (`:root` variables), typography scale, component anatomy & 7 states, responsive breakpoints | Frontend code |
-| 4 | `docs/preview.html` | Visual reference — open in browser at 1440, 768, 390px widths | Frontend code |
-| 5 | `docs/architecture.md` | Deep module interfaces, public seams (= test surfaces), DB schema, API contracts (Zod schemas), error handling strategy, performance budget | Backend + tests |
-| 6 | `docs/tasks.md` | Current Story, TASK-XX sequence, `Blocked by:` edges, estimated files to touch, Definition of Done checklist | Execution order |
-| 7 | `docs/adr/*.md` | Architectural decisions — follow chosen patterns, do NOT contradict ADR rationale | Implementation |
-| 8 | `docs/test-plan.md` | Test case IDs (TC-01..TC-23), public seams under test, risk-based priority | Test writing |
+| 2 | `docs/03-features/<FEAT-ID>-<slug>/prd.md` *(or `docs/00-product/prd.md`)* | Functional requirements matrix (FR-01..FR-XX), NFRs, API contracts, data validation rules, Gherkin ACs | Tests + implementation |
+| 3 | `docs/01-design/design-spec.md` *(or `docs/design-spec.md`)* | CSS token values (`:root` variables), typography scale, component anatomy & 7 states, responsive breakpoints | Frontend code |
+| 4 | `docs/01-design/preview.html` *(or `docs/preview.html`)* | Interactive visual reference — match 100% of layout, tokens, and micro-interactions at 1440, 768, 390px | Frontend code |
+| 5 | `docs/02-architecture/architecture.md` *(or `docs/architecture.md`)* | Deep module interfaces, public seams (= test surfaces), DB schema, API contracts (Zod schemas), `AppError` & `src/lib/logger.ts` strategy | Backend + tests |
+| 6 | `docs/03-features/<FEAT-ID>-<slug>/tasks.md` *(or `docs/tasks.md`)* | Current Story, TASK-XX sequence, `Blocked by:` edges, estimated files to touch, Definition of Done checklist | Execution order |
+| 7 | `docs/02-architecture/adr/*.md` *(or `docs/adr/*.md`)* | Architectural decisions — follow chosen patterns, do NOT contradict ADR rationale | Implementation |
+| 8 | `docs/03-features/<FEAT-ID>-<slug>/test-plan.md` *(or `docs/test-plan.md`)* | Test case IDs (`TC-01..TC-24`), Concrete Test Vectors, public seams under test | Test writing |
 | 9 | `.agents/LESSONS_LEARNED.md` | Past defect patterns — do NOT repeat known mistakes | All code |
 
-### 1. Pre-Coding Preparation (`ponytail` + `domain-modeling`)
-1. Read `GLOSSARY.md`, `docs/adr/`, `docs/prd.md`, `docs/design-spec.md`, `docs/architecture.md`, `docs/tasks.md`, `docs/test-plan.md`, and `.agents/LESSONS_LEARNED.md`.
+### 1. Pre-Coding Preparation (`domain-modeling`)
+1. Read all 9 documents listed in Section 0 above.
 2. Checkout isolated feature branch: `git checkout -b feat/<ticket-slug>` (never code on `main`).
-3. **Blast Radius Check (`ponytail`):** Before touching any existing file, list every caller, test, fixture, config, and export it reaches.
+3. **Blast Radius Check:** Before touching any existing file, list every caller, test, fixture, config, and export it reaches.
 
 ### 2. Strict Vertical-Slice TDD Loop (`tdd` + `codebase-design`)
 Execute `docs/tasks.md` one Story and one vertical slice at a time (respecting `Blocked by:` edges):
@@ -136,7 +136,7 @@ Check `"repo_mode"` in `.agents/TEAM_STATE.json` before staging/committing each 
   2. **Mandatory Runtime Smoke Test (Uji Nyala Nyata):**
      - Start server in background, send HTTP request to `http://localhost:<port>` (or `/health`), verify `HTTP 200 OK`, verify `X-Request-Id` header & structured log output, and confirm zero unhandled runtime errors, then stop the background server cleanly.
   3. **Taste Skill Automated Check (for web UI projects):**
-     - Run `node <taste-skill>/scripts/copy-lint.mjs` and `consistency.mjs --quick --widths 1440,390` if applicable.
+     - Run `node "${HOME}/.gemini/config/plugins/autonomous-team-kit/skills/design-taste-frontend/scripts/copy-lint.mjs"` and `consistency.mjs --quick --widths 1440,390` if applicable.
 
 **Definition of Done (DoD) — Self-Check Before Handoff:**
 Sebelum menyerahkan Story ke Orchestrator untuk Lead Engineer Review, Engineer **WAJIB** memverifikasi semua item DoD dari `tasks.md`:

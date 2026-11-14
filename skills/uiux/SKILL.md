@@ -60,29 +60,33 @@ You are powered 100% by **tasteskill 2.5.1** (`Leonxlnx/taste-skill` bundled at 
 | Hired service (clinic, law firm, agency, studio) | `service` | `other` | `service` |
 | Physical venue (cafe, bakery, hotel, shop, gym) | `place` | `other` | `place` |
 
-### C. Mandatory Taste Skill CLI Dealers & Generators
-Never guess colors, fonts, heroes, or moments by arbitrary AI habit. Run the bundled `taste-skill` dealers from the skill directory (`<skill>` = `autonomous-team-kit/skills/design-taste-frontend`):
+### C. Mandatory Taste Skill CLI Dealers & Generators (Exact Global Plugin Path)
+Never guess colors, fonts, heroes, or moments by arbitrary AI habit. Run the bundled `taste-skill` dealers using the **installed global plugin path** (`SKILL_DIR="$HOME/.gemini/config/plugins/autonomous-team-kit/skills/design-taste-frontend"` on Linux/WSL/VPS or `"$HOME\.gemini\config\plugins\autonomous-team-kit\skills\design-taste-frontend"` on Windows):
 ```bash
+SKILL_DIR="${HOME}/.gemini/config/plugins/autonomous-team-kit/skills/design-taste-frontend"
+
 # 1. Deal hero layout
-node <skill>/assets/layout/deal.mjs --type <page-type> --has <photo,ui,film,object,setting> --history .taste-skill/layout-history.json
+node "${SKILL_DIR}/assets/layout/deal.mjs" --type <page-type> --has <photo,ui,film,object,setting> --history .taste-skill/layout-history.json
 
 # 2. Deal curated palette (from library/palettes.json) & typography pairing (from library/type.json)
-node <skill>/scripts/start.mjs deal --page <kind> --trade <trade> --history .taste-skill/history.json
+node "${SKILL_DIR}/scripts/start.mjs" deal --page <kind> --trade <trade> --history .taste-skill/history.json
 
 # 3. Generate root CSS tokens (:root block)
-node <skill>/scripts/start.mjs css --page <kind> --palette <id> --type <id> --radius <sharp|soft|round> --history .taste-skill/history.json
+node "${SKILL_DIR}/scripts/start.mjs" css --page <kind> --palette <id> --type <id> --radius <sharp|soft|round> --history .taste-skill/history.json
 
 # 4. Pick 1-2 award-site moments
-node <skill>/scripts/moments.mjs pick --page <kind> --count 1 --fits section,statement --photo --history .taste-skill/history.json
+node "${SKILL_DIR}/scripts/moments.mjs" pick --page <kind> --count 1 --fits section,statement --photo --history .taste-skill/history.json
 ```
-*(Or read directly from `<skill>/library/palettes.json` and `<skill>/library/type.json` and `<skill>/assets/starter.html` & `system.css`).*
+*(Or read directly from `${SKILL_DIR}/library/palettes.json`, `${SKILL_DIR}/library/type.json`, and `${SKILL_DIR}/assets/starter.html` & `system.css`).*
 
-### D. Pre-Handoff Verification Scripts (When Building `docs/preview.html`)
-Run the `taste-skill` linters against `docs/preview.html` (or `index.html`):
-```bash
-node <skill>/scripts/copy-lint.mjs docs/preview.html --kind <kind>
-```
-Check copy against `references/copy.md`, `references/copy-voice.md`, and `references/copy-tells.md` (60–80 words per screen outside UI mocks, noun in every heading, verb + object in every button, zero AI slop buzzwords).
+### D. Rich Application UI vs Marketing Landing Page & Pre-Handoff Verification
+1. **Web Application / Dashboard / SaaS Product vs Marketing Landing Page:**
+   - When the project is an **Interactive Web Application / Dashboard / SaaS Tool**, `docs/01-design/preview.html` and `docs/01-design/design-spec.md` MUST design the **complete, functional application interface** (sidebar/top navigation, rich data tables/views, interactive modals/drawers, form validation states, filter bars, status badges, and all 7 interactive states) — **NEVER** reduce a full web app into a sparse 3-section marketing brochure!
+   - When the project is a **Marketing / Product / Place Landing Page**, enforce `taste-skill` copy density (`60–80 words per screen` outside UI mocks) and run:
+     ```bash
+     node "${HOME}/.gemini/config/plugins/autonomous-team-kit/skills/design-taste-frontend/scripts/copy-lint.mjs" docs/01-design/preview.html --kind <kind>
+     ```
+2. Always save outputs to **`docs/01-design/design-spec.md`** and **`docs/01-design/preview.html`**.
 
 ---
 

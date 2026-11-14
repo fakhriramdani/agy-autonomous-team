@@ -96,7 +96,7 @@ Setiap `Story N` dan `TASK-XX (RED)` dari `tasks.md` WAJIB dipetakan 1:1 ke `TC-
 | **TC-03** | Story 1 / `TASK-01` | `POST /api/...` (`<Module.method>`) | US-01 Duplicate / Race | 2 parallel requests with same idempotency key | 1st `201`, 2nd `409` or idempotent `200`, exactly 1 DB record |
 
 ## 2. Business Edge Cases, Concurrency & Security Matrix (`ponytail-audit`)
-- [ ] **TC-03 (Boundary / Overflow):** Empty input, `0`, max length + 1, special/Unicode chars, negative numbers, timezone edges.
+- [ ] **TC-03A (Boundary / Overflow):** Empty input, `0`, max length + 1, special/Unicode chars, negative numbers, timezone edges.
 - [ ] **TC-04 (Concurrency / Idempotency):** Duplicate rapid clicks / parallel requests do not create duplicate records or race conditions.
 - [ ] **TC-05 (Security & Trust Boundaries):** Unauthorized access (`401/403`), SQLi/XSS payload injection, zero secrets in client bundle or git diff.
 
@@ -138,15 +138,16 @@ Setiap `Story N` dan `TASK-XX (RED)` dari `tasks.md` WAJIB dipetakan 1:1 ke `TC-
 Run the project's test suite, linter, typechecker, and build on `main` (`--headless` on Linux/VPS). Capture exact exit codes and terminal output.
 
 ### Step 2: Taste Skill 2.5.1 Headless Browser & Copy Gate (For Web / Frontend Projects)
-Run the bundled `taste-skill` verification scripts in the foreground (1 at a time, using a local `--profile .taste-skill/chrome-check` directory):
+Run the bundled `taste-skill` verification scripts in the foreground using the installed global plugin path (`SKILL_DIR="${HOME}/.gemini/config/plugins/autonomous-team-kit/skills/design-taste-frontend"`):
 ```bash
-node <taste-skill>/scripts/copy-lint.mjs <entry-html-or-url> --kind <kind>
-node <taste-skill>/scripts/consistency.mjs <entry-html-or-url> --widths 1440,1024,820,768,390 --rhythm-widths 1440,820,768,390 --profile .taste-skill/chrome-check --page <kind> --category "<what is sold>" --primary "<main action>"
-node <taste-skill>/assets/layout/check.mjs --url <entry-html-or-url> --profile .taste-skill/chrome-check --sizes 1440x900,1024x768,820x1180,768x1024,390x844 --shots .taste-skill/shots/layout
-node <taste-skill>/scripts/perf.mjs <entry-html-or-url> --profile .taste-skill/chrome-check
-node <taste-skill>/scripts/gate.mjs <entry-html-or-url>
+SKILL_DIR="${HOME}/.gemini/config/plugins/autonomous-team-kit/skills/design-taste-frontend"
+node "${SKILL_DIR}/scripts/copy-lint.mjs" <entry-html-or-url> --kind <kind>
+node "${SKILL_DIR}/scripts/consistency.mjs" <entry-html-or-url> --widths 1440,1024,820,768,390 --rhythm-widths 1440,820,768,390 --profile .taste-skill/chrome-check --page <kind> --category "<what is sold>" --primary "<main action>"
+node "${SKILL_DIR}/assets/layout/check.mjs" --url <entry-html-or-url> --profile .taste-skill/chrome-check --sizes 1440x900,1024x768,820x1180,768x1024,390x844 --shots .taste-skill/shots/layout
+node "${SKILL_DIR}/scripts/perf.mjs" <entry-html-or-url> --profile .taste-skill/chrome-check
+node "${SKILL_DIR}/scripts/gate.mjs" <entry-html-or-url>
 ```
-Also compare rendered screenshots against Figma (`get_screenshot`) and `docs/design-spec.md` token tables.
+Also compare rendered screenshots against Figma (`get_screenshot`) and `docs/01-design/design-spec.md` token tables.
 
 ### Step 3: Secrets, Structured Logging & Git Hygiene Audit
 Run `git diff origin/main...HEAD` (or inspect tracked files and runtime stdout logs) to confirm:
